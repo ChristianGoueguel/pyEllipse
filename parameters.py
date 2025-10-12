@@ -1,12 +1,3 @@
-"""
-Hotelling's T-squared Statistic and Ellipse Parameters
-
-
-
-This module calculates Hotelling's T-squared statistic and, when applicable,
-the lengths of the semi-axes of the Hotelling's ellipse.
-"""
-
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -14,7 +5,7 @@ from typing import Union, Optional, Dict
 import sys
 
 
-def ellipse_param(
+def hotelling_param(
     x: Union[np.ndarray, pd.DataFrame],
     k: int = 2,
     pcx: int = 1,
@@ -52,32 +43,12 @@ def ellipse_param(
     -------
     dict
         Dictionary containing:
-        - 'Tsquare': DataFrame with T-squared statistic for each observation
+        - 'Tsquared': DataFrame with T-squared statistic for each observation
         - 'Ellipse': DataFrame with semi-axes lengths (only when k=2)
         - 'cutoff_99pct': T-squared cutoff at 99% confidence
         - 'cutoff_95pct': T-squared cutoff at 95% confidence
         - 'nb_comp': Number of components used
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from sklearn.decomposition import PCA
-    >>> 
-    >>> # Generate sample data
-    >>> np.random.seed(123)
-    >>> data = np.random.randn(100, 10)
-    >>> 
-    >>> # Perform PCA
-    >>> pca = PCA()
-    >>> pca_scores = pca.fit_transform(data)
-    >>> 
-    >>> # Calculate T-squared with fixed components
-    >>> result = ellipse_param(pca_scores, k=2)
-    >>> 
-    >>> # Calculate with variance threshold
-    >>> result = ellipse_param(pca_scores, threshold=0.95)
     """
-    # Input validation
     if x is None:
         raise ValueError("Missing input data.")
     
@@ -98,7 +69,6 @@ def ellipse_param(
     x = np.asarray(x, dtype=float)
     n, p = x.shape
     
-    # Validate threshold
     if threshold is not None:
         if not isinstance(threshold, (int, float)) or threshold <= 0 or threshold > 1:
             raise ValueError("Threshold must be a numeric value between 0 and 1.")
@@ -106,7 +76,6 @@ def ellipse_param(
         if not isinstance(k, int) or k < 2 or k > p:
             raise ValueError(f"'k' must be an integer between 2 and {p}.")
     
-    # Validate pcx and pcy
     if not isinstance(pcx, int) or pcx < 1 or pcx > p:
         raise ValueError(f"'pcx' must be an integer between 1 and {p}.")
     
@@ -116,13 +85,11 @@ def ellipse_param(
     if pcx == pcy:
         raise ValueError("'pcx' and 'pcy' must be different integers.")
     
-    # Calculate component variances
     comp_var = np.var(x, axis=0, ddof=1)
     total_var = np.sum(comp_var)
     relative_var = comp_var / total_var
     nearzero_var = (relative_var < rel_tol) | (comp_var < abs_tol)
     
-    # Process based on threshold or fixed components
     if threshold is None:
         result = _process_fixed_comp(
             x, k, pcx, pcy, nearzero_var, comp_var, relative_var, rel_tol
@@ -162,14 +129,13 @@ def _process_fixed_comp(
     except Exception as e:
         raise RuntimeError(f"Error in T-squared calculation: {str(e)}")
     
-    result['Tsquare'] = t2_values['Tsq']
+    result['Tsquared'] = t2_values['Tsq']
     result['cutoff_99pct'] = t2_values['Tsq_limit1']
     result['cutoff_95pct'] = t2_values['Tsq_limit2']
     result['nb_comp'] = k
     
     # Calculate ellipse parameters for 2D case
     if k == 2:
-        # Convert to 0-indexed
         pcx_idx = pcx - 1
         pcy_idx = pcy - 1
         
@@ -210,7 +176,7 @@ def _process_threshold(
             "Threshold is too high. Cannot find enough components to meet the threshold."
         )
     
-    k = k_indices[0] + 1  # Convert to 1-indexed count
+    k = k_indices[0] + 1  
     
     if k == 1:
         print(f"Warning: The specified threshold ({threshold:.3f}) is lower than "
@@ -235,7 +201,7 @@ def _process_threshold(
     except Exception as e:
         raise RuntimeError(f"Error in T-squared calculation: {str(e)}")
     
-    result['Tsquare'] = t2_values['Tsq']
+    result['Tsquared'] = t2_values['Tsq']
     result['cutoff_99pct'] = t2_values['Tsq_limit1']
     result['cutoff_95pct'] = t2_values['Tsq_limit2']
     result['nb_comp'] = k
@@ -248,7 +214,6 @@ def _compute_tsquared(x: np.ndarray, ncomp: int) -> Dict:
     n = x.shape[0]
     x_subset = x[:, :ncomp]
     
-    # Calculate Mahalanobis distance
     mean = np.mean(x_subset, axis=0)
     cov = np.cov(x_subset, rowvar=False)
     
@@ -274,34 +239,3 @@ def _compute_tsquared(x: np.ndarray, ncomp: int) -> Dict:
         'Tsq_limit1': tsq_limit1,
         'Tsq_limit2': tsq_limit2
     }
-
-
-# Example usage
-if __name__ == "__main__":
-    # Generate sample data
-    np.random.seed(123)
-    n_samples, n_features = 100, 10
-    data = np.random.randn(n_samples, n_features)
-    
-    # Simulate PCA scores (for demonstration)
-    from sklearn.decomposition import PCA
-    pca = PCA()
-    pca_scores = pca.fit_transform(data)
-    
-    # Example 1: Fixed number of components
-    print("Example 1: Using 2 components")
-    result1 = ellipse_param(pca_scores, k=2)
-    print(f"Number of components: {result1['nb_comp']}")
-    print(f"99% cutoff: {result1['cutoff_99pct']:.4f}")
-    print(f"95% cutoff: {result1['cutoff_95pct']:.4f}")
-    if 'Ellipse' in result1:
-        print("Ellipse parameters:")
-        print(result1['Ellipse'])
-    print()
-    
-    # Example 2: Using variance threshold
-    print("Example 2: Using 95% variance threshold")
-    result2 = ellipse_param(pca_scores, threshold=0.95)
-    print(f"Number of components: {result2['nb_comp']}")
-    print(f"99% cutoff: {result2['cutoff_99pct']:.4f}")
-    print(f"95% cutoff: {result2['cutoff_95pct']:.4f}")
