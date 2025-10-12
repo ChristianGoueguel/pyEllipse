@@ -43,25 +43,6 @@ def hotelling_coord(
         DataFrame containing coordinate points:
         - For 2D ellipses: columns 'x' and 'y'
         - For 3D ellipsoids: columns 'x', 'y', and 'z'
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from sklearn.decomposition import PCA
-    >>> 
-    >>> # Generate sample data
-    >>> np.random.seed(123)
-    >>> data = np.random.randn(100, 5)
-    >>> 
-    >>> # Perform PCA
-    >>> pca = PCA()
-    >>> pca_scores = pca.fit_transform(data)
-    >>> 
-    >>> # Generate 2D ellipse coordinates
-    >>> coords_2d = ellipse_coord(pca_scores, pcx=1, pcy=2)
-    >>> 
-    >>> # Generate 3D ellipsoid coordinates
-    >>> coords_3d = ellipse_coord(pca_scores, pcx=1, pcy=2, pcz=3)
     """
     if x is None:
         raise ValueError("Missing input data.")
