@@ -72,8 +72,8 @@ def confidence_ellipse(
         # 2D ellipse
         if group_by is None:
             selected_data = data[[x, y]].values
-            ellipse_coords = _transform_2d(selected_data, conf_level, robust, distribution)
-            result = pd.DataFrame(ellipse_coords, columns=['x', 'y'])
+            hotelling_coordinatess = _transform_2d(selected_data, conf_level, robust, distribution)
+            result = pd.DataFrame(hotelling_coordinatess, columns=['x', 'y'])
         else:
             if group_by not in data.columns:
                 raise ValueError(f"Column '{group_by}' not found in data.")
@@ -81,8 +81,8 @@ def confidence_ellipse(
             results = []
             for group_name, group_data in data.groupby(group_by):
                 selected_data = group_data[[x, y]].values
-                ellipse_coords = _transform_2d(selected_data, conf_level, robust, distribution)
-                group_df = pd.DataFrame(ellipse_coords, columns=['x', 'y'])
+                hotelling_coordinatess = _transform_2d(selected_data, conf_level, robust, distribution)
+                group_df = pd.DataFrame(hotelling_coordinatess, columns=['x', 'y'])
                 group_df[group_by] = group_name
                 results.append(group_df)
             

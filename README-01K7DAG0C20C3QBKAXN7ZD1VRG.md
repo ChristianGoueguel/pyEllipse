@@ -4,10 +4,8 @@ runme:
     relativePath: README.md
   session:
     id: 01K7DAG0C20C3QBKAXN7ZD1VRG
-    updated: 2025-10-12 16:39:16-07:00
+    updated: 2025-10-12 16:52:40-07:00
 ---
-
-# pyEllipse
 
 # pyEllipse
 
@@ -17,8 +15,8 @@ A Python package for computing Hotelling's T² statistics and generating confide
 
 `pyEllipse` provides three main functions for analyzing multivariate data:
 
-1. **`ellipse_param`** - Calculate Hotelling's T² statistics and ellipse parameters
-2. **`ellipse_coord`** - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
+1. **`hotelling_parameters`** - Calculate Hotelling's T² statistics and ellipse parameters
+2. **`hotelling_coordinates`** - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
 3. **`confidence_ellipse`** - Compute confidence ellipse/ellipsoid coordinates from raw data with grouping support
 
 ## Installation
@@ -34,7 +32,7 @@ pip install pyEllipse
 
 ## Functions
 
-### 1. `ellipse_param` - Hotelling's T² Statistics
+### 1. `hotelling_parameters` - Hotelling's T² Statistics
 
 Calculate Hotelling's T² statistic and ellipse parameters from component scores (PCA, PLS, ICA, etc.).
 
@@ -52,12 +50,12 @@ Calculate Hotelling's T² statistic and ellipse parameters from component scores
 - `rel_tol`, `abs_tol`: Variance thresholds for component filtering
 
 **Returns:**
-- `Tsquare`: DataFrame with T² values for each observation
+- `Tsquared`: DataFrame with T² values for each observation
 - `cu********ct`, `cu********ct`: Confidence cutoffs
 - `Ellipse`: Semi-axes lengths (when k=2)
 - `nb_comp`: Number of components used
 
-### 2. `ellipse_coord` - Hotelling's Ellipse Coordinates
+### 2. `hotelling_coordinates` - Hotelling's Ellipse Coordinates
 
 Generate coordinate points for drawing Hotelling's T² ellipses/ellipsoids from component scores.
 
@@ -107,7 +105,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from pyEllipse import ellipse_param, ellipse_coord
+from pyEllipse import hotelling_parameters, hotelling_coordinates
 
 # Generate sample data
 np*************42)
@@ -118,13 +116,13 @@ pca = PCA()
 pca_scores = pca.fit_transform(data)
 
 # Calculate T² statistics
-results = ellipse_param(pca_scores, k=2)
+results = hotelling_parameters(pca_scores, k=2)
 pr***(f"95% cutoff: {re***ts['cu********ct']:.3f}")
 pr***(f"99% cutoff: {re***ts['cu********ct']:.3f}")
 
 # Generate ellipse coordinates for plotting
-el******95 = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********95)
-el******99 = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********99)
+el******95 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, co***********95)
+el******99 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, co***********99)
 
 # Plot
 fig, ax = pl********************10, 8))
@@ -162,7 +160,7 @@ df.loc[df['type'] == 'Glass_B', 'Na2O'] += 2
 df.loc[df['type'] == 'Glass_C', 'SiO2'] -= 1
 
 # Compute confidence ellipses for each group
-ellipse_coords = confidence_ellipse(
+hotelling_coordinatess = confidence_ellipse(
     df, 
     x='SiO2', 
     y='Na2O', 
@@ -184,7 +182,7 @@ for glass_type, color in colors.items():
 
 # Plot ellipses
 for glass_type, color in colors.items():
-    ellipse_subset = ellipse_coords[ellipse_coords['type'] == glass_type]
+    ellipse_subset = hotelling_coordinatess[hotelling_coordinatess['type'] == glass_type]
     ax.plot(ellipse_subset['x'], ellipse_subset['y'], 
             c=color, li*********.5, label=f'{glass_type} 95% CI')
 
@@ -206,7 +204,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mp****************3d import Ax**3D
 from sklearn.decomposition import PCA
-from pyEllipse import ellipse_coord
+from pyEllipse import hotelling_coordinates
 
 # Generate sample data
 np*************42)
@@ -217,7 +215,7 @@ pca = PC**************=5)
 pca_scores = pca.fit_transform(data)
 
 # Generate 3D ellipsoid coordinates (fewer points for 3D)
-ellipsoid = ellipse_coord(
+ellipsoid = hotelling_coordinates(
     pca_scores, 
     pcx=1, 
     pcy=2, 
@@ -258,7 +256,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from pyEllipse import ellipse_param, ellipse_coord
+from pyEllipse import hotelling_parameters, hotelling_coordinates
 
 # Generate data with outliers
 np*************42)
@@ -271,7 +269,7 @@ pca = PCA()
 pca_scores = pca.fit_transform(data)
 
 # Calculate T² statistics
-results = ellipse_param(pca_scores, k=2)
+results = hotelling_parameters(pca_scores, k=2)
 t_squared = results['Tsquare']['value']
 cu*****95 = re***ts['cu********ct']
 
@@ -279,7 +277,7 @@ cu*****95 = re***ts['cu********ct']
 outliers_mask = t_squared > cu*****95
 
 # Generate ellipse
-ellipse = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********95)
+ellipse = hotelling_coordinates(pca_scores, pcx=1, pcy=2, co***********95)
 
 # Plot
 fig, (ax1, ax2) = pl**********(1, 2, fi*******16, 6))
@@ -356,7 +354,7 @@ plt.show()
 
 ## Key Differences Between Functions
 
-| Feature | `ellipse_param` | `ellipse_coord` | `confidence_ellipse` |
+| Feature | `hotelling_parameters` | `hotelling_coordinates` | `confidence_ellipse` |
 |---------|----------------|-----------------|---------------------|
 | **Input** | Component scores | Component scores | Raw data |
 | **Purpose** | T² statistics | Plot coordinates | Plot coordinates |
@@ -368,13 +366,13 @@ plt.show()
 
 ## When to Use Each Function
 
-### Use `ellipse_param` when:
+### Use `hotelling_parameters` when:
 - You need T² statistics for outlier detection
 - You want confidence cutoff values
 - You're performing quality control or process monitoring
 - You need ellipse parameters (semi-axes lengths)
 
-### Use `ellipse_coord` when:
+### Use `hotelling_coordinates` when:
 - You have PCA/PLS component scores
 - You want to visualize confidence regions on score plots
 - You need precise control over which components to plot
@@ -429,7 +427,7 @@ MIT License
 
 ## Author
 
-Converted from R to Python based on original R packages by Christian L. Goueguel
+Christian L. Goueguel
 
 ## Contributing
 
