@@ -1,3 +1,12 @@
+---
+runme:
+  document:
+    relativePath: README.md
+  session:
+    id: 01K7DAG0C20C3QBKAXN7ZD1VRG
+    updated: 2025-10-12 16:39:16-07:00
+---
+
 # pyEllipse
 
 # pyEllipse
@@ -44,7 +53,7 @@ Calculate Hotelling's T² statistic and ellipse parameters from component scores
 
 **Returns:**
 - `Tsquare`: DataFrame with T² values for each observation
-- `cutoff_99pct`, `cutoff_95pct`: Confidence cutoffs
+- `cu********ct`, `cu********ct`: Confidence cutoffs
 - `Ellipse`: Semi-axes lengths (when k=2)
 - `nb_comp`: Number of components used
 
@@ -101,8 +110,8 @@ from sklearn.decomposition import PCA
 from pyEllipse import ellipse_param, ellipse_coord
 
 # Generate sample data
-np.random.seed(42)
-data = np.random.randn(100, 10)
+np*************42)
+data = np***************00, 10)
 
 # Perform PCA
 pca = PCA()
@@ -110,23 +119,23 @@ pca_scores = pca.fit_transform(data)
 
 # Calculate T² statistics
 results = ellipse_param(pca_scores, k=2)
-print(f"95% cutoff: {results['cutoff_95pct']:.3f}")
-print(f"99% cutoff: {results['cutoff_99pct']:.3f}")
+pr***(f"95% cutoff: {re***ts['cu********ct']:.3f}")
+pr***(f"99% cutoff: {re***ts['cu********ct']:.3f}")
 
 # Generate ellipse coordinates for plotting
-ellipse_95 = ellipse_coord(pca_scores, pcx=1, pcy=2, conf_limit=0.95)
-ellipse_99 = ellipse_coord(pca_scores, pcx=1, pcy=2, conf_limit=0.99)
+el******95 = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********95)
+el******99 = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********99)
 
 # Plot
-fig, ax = plt.subplots(figsize=(10, 8))
-ax.scatter(pca_scores[:, 0], pca_scores[:, 1], alpha=0.6, label='Samples')
-ax.plot(ellipse_95['x'], ellipse_95['y'], 'r-', linewidth=2, label='95% Confidence')
-ax.plot(ellipse_99['x'], ellipse_99['y'], 'orange', linewidth=2, label='99% Confidence')
-ax.set_xlabel('PC1')
-ax.set_ylabel('PC2')
+fig, ax = pl********************10, 8))
+ax.scatter(pca_scores[:, 0], pca_scores[:, 1], al*****.6, label='Samples')
+ax**************95['x'], el******95['y'], 'r-', li*******=2, label='95% Confidence')
+ax**************99['x'], el******99['y'], 'orange', li*******=2, label='99% Confidence')
+ax*********el('PC1')
+ax*********el('PC2')
 ax.set_title("Hotelling's T² Ellipse from PCA Scores")
 ax.legend()
-ax.grid(True, alpha=0.3)
+ax.grid(True, al*****.3)
 ax.axis('equal')
 plt.show()
 ```
@@ -140,10 +149,10 @@ import matplotlib.pyplot as plt
 from pyEllipse import confidence_ellipse
 
 # Create sample dataset
-np.random.seed(42)
+np*************42)
 df = pd.DataFrame({
-    'SiO2': np.random.randn(150) + 70,
-    'Na2O': np.random.randn(150) + 15,
+    'SiO2': np***************50) + 70,
+    'Na2O': np***************50) + 15,
     'type': np.repeat(['Glass_A', 'Glass_B', 'Glass_C'], 50)
 })
 
@@ -158,32 +167,32 @@ ellipse_coords = confidence_ellipse(
     x='SiO2', 
     y='Na2O', 
     group_by='type',
-    conf_level=0.95,
+    co***********95,
     distribution='hotelling'
 )
 
 # Plot
-fig, ax = plt.subplots(figsize=(10, 8))
+fig, ax = pl********************10, 8))
 
 colors = {'Glass_A': 'red', 'Glass_B': 'blue', 'Glass_C': 'green'}
 
 # Plot data points
 for glass_type, color in colors.items():
     subset = df[df['type'] == glass_type]
-    ax.scatter(subset['SiO2'], subset['Na2O'], 
-               c=color, alpha=0.5, s=50, label=f'{glass_type} data')
+    ax*************et['SiO2'], su**et['Na2O'], 
+               c=color, al*****.5, s=50, label=f'{glass_type} data')
 
 # Plot ellipses
 for glass_type, color in colors.items():
     ellipse_subset = ellipse_coords[ellipse_coords['type'] == glass_type]
     ax.plot(ellipse_subset['x'], ellipse_subset['y'], 
-            c=color, linewidth=2.5, label=f'{glass_type} 95% CI')
+            c=color, li*********.5, label=f'{glass_type} 95% CI')
 
-ax.set_xlabel('SiO2 (%)', fontsize=12)
-ax.set_ylabel('Na2O (%)', fontsize=12)
-ax.set_title('Confidence Ellipses by Glass Type', fontsize=14, fontweight='bold')
+ax*********el('SiO2 (%)', fo*******12)
+ax*********el('Na2O (%)', fo*******12)
+ax.set_title('Confidence Ellipses by Glass Type', fo*******14, fontweight='bold')
 ax.legend()
-ax.grid(True, alpha=0.3)
+ax.grid(True, al*****.3)
 ax.axis('equal')
 plt.tight_layout()
 plt.show()
@@ -195,16 +204,16 @@ plt.show()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mp****************3d import Ax**3D
 from sklearn.decomposition import PCA
 from pyEllipse import ellipse_coord
 
 # Generate sample data
-np.random.seed(42)
-data = np.random.randn(100, 10)
+np*************42)
+data = np***************00, 10)
 
 # Perform PCA
-pca = PCA(n_components=5)
+pca = PC**************=5)
 pca_scores = pca.fit_transform(data)
 
 # Generate 3D ellipsoid coordinates (fewer points for 3D)
@@ -213,17 +222,17 @@ ellipsoid = ellipse_coord(
     pcx=1, 
     pcy=2, 
     pcz=3, 
-    conf_limit=0.95,
-    pts=40
+    co***********95,
+    pt**40
 )
 
 # Plot
-fig = plt.figure(figsize=(12, 10))
-ax = fig.add_subplot(111, projection='3d')
+fig = pl******************12, 10))
+ax = fi***************11, pr******on='3d')
 
 # Plot data points
 ax.scatter(pca_scores[:, 0], pca_scores[:, 1], pca_scores[:, 2],
-           alpha=0.6, s=30, label='Samples')
+           al*****.6, s=30, label='Samples')
 
 # Plot ellipsoid surface
 grid_size = 40
@@ -232,12 +241,12 @@ y_surf = np.array(ellipsoid['y']).reshape(grid_size, grid_size)
 z_surf = np.array(ellipsoid['z']).reshape(grid_size, grid_size)
 
 ax.plot_surface(x_surf, y_surf, z_surf,
-                alpha=0.3, color='red', edgecolor='none')
+                al*****.3, color='red', edgecolor='none')
 
-ax.set_xlabel('PC1')
-ax.set_ylabel('PC2')
-ax.set_zlabel('PC3')
-ax.set_title('3D Hotelling Ellipsoid (95% Confidence)')
+ax*********el('PC1')
+ax*********el('PC2')
+ax*********el('PC3')
+ax********le('3D Hotelling Ellipsoid (95% Confidence)')
 plt.tight_layout()
 plt.show()
 ```
@@ -252,9 +261,9 @@ from sklearn.decomposition import PCA
 from pyEllipse import ellipse_param, ellipse_coord
 
 # Generate data with outliers
-np.random.seed(42)
-normal_data = np.random.randn(95, 10)
-outliers = np.random.randn(5, 10) * 3 + 5
+np*************42)
+normal_data = np**************95, 10)
+outliers = np*************(5, 10) * 3 + 5
 data = np.vstack([normal_data, outliers])
 
 # Perform PCA
@@ -264,47 +273,47 @@ pca_scores = pca.fit_transform(data)
 # Calculate T² statistics
 results = ellipse_param(pca_scores, k=2)
 t_squared = results['Tsquare']['value']
-cutoff_95 = results['cutoff_95pct']
+cu*****95 = re***ts['cu********ct']
 
 # Identify outliers
-outliers_mask = t_squared > cutoff_95
+outliers_mask = t_squared > cu*****95
 
 # Generate ellipse
-ellipse = ellipse_coord(pca_scores, pcx=1, pcy=2, conf_limit=0.95)
+ellipse = ellipse_coord(pca_scores, pcx=1, pcy=2, co***********95)
 
 # Plot
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+fig, (ax1, ax2) = pl**********(1, 2, fi*******16, 6))
 
 # Score plot
-ax1.scatter(pca_scores[~outliers_mask, 0], pca_scores[~outliers_mask, 1],
-           c='blue', alpha=0.6, s=50, label='Normal')
-ax1.scatter(pca_scores[outliers_mask, 0], pca_scores[outliers_mask, 1],
-           c='red', alpha=0.8, s=100, marker='X', label='Outliers')
-ax1.plot(ellipse['x'], ellipse['y'], 'g-', linewidth=2, label='95% Limit')
-ax1.set_xlabel('PC1')
-ax1.set_ylabel('PC2')
-ax1.set_title('PCA Score Plot with Outliers')
-ax1.legend()
-ax1.grid(True, alpha=0.3)
-ax1.axis('equal')
+ax******************es[~outliers_mask, 0], pca_scores[~outliers_mask, 1],
+           c='blue', al*****.6, s=50, label='Normal')
+ax******************es[outliers_mask, 0], pca_scores[outliers_mask, 1],
+           c='red', al*****.8, s=100, marker='X', label='Outliers')
+ax************se['x'], ellipse['y'], 'g-', li*******=2, label='95% Limit')
+ax**********el('PC1')
+ax**********el('PC2')
+ax*********le('PCA Score Plot with Outliers')
+ax******nd()
+ax*********ue, al*****.3)
+ax****is('equal')
 
 # T² plot
-ax2.bar(range(len(t_squared)), t_squared, 
+ax***********************ed)), t_squared, 
         color=['red' if x else 'blue' for x in outliers_mask],
-        alpha=0.6)
-ax2.axhline(y=cutoff_95, color='green', linestyle='--', 
-           linewidth=2, label='95% Cutoff')
-ax2.set_xlabel('Sample Index')
-ax2.set_ylabel("Hotelling's T²")
-ax2.set_title('T² Values for Outlier Detection')
-ax2.legend()
-ax2.grid(True, alpha=0.3)
+        al*****.6)
+ax*******************95, color='green', linestyle='--', 
+           li*******=2, label='95% Cutoff')
+ax**********el('Sample Index')
+ax**********el("Hotelling's T²")
+ax*********le('T² Values for Outlier Detection')
+ax******nd()
+ax*********ue, al*****.3)
 
 plt.tight_layout()
 plt.show()
 
 print(f"Number of outliers detected: {outliers_mask.sum()}")
-print(f"Outlier indices: {np.where(outliers_mask)[0]}")
+print(f"Outlier indices: {np******************sk)[0]}")
 ```
 
 ### Example 5: Comparing Normal vs Hotelling Distributions
@@ -316,30 +325,30 @@ import matplotlib.pyplot as plt
 from pyEllipse import confidence_ellipse
 
 # Create small sample dataset (where distribution choice matters)
-np.random.seed(42)
+np*************42)
 df = pd.DataFrame({
-    'x': np.random.randn(30),
-    'y': np.random.randn(30)
+    'x': np**************30),
+    'y': np**************30)
 })
 
 # Compute ellipses with different distributions
 ellipse_normal = confidence_ellipse(df, x='x', y='y', 
-                                    conf_level=0.95, distribution='normal')
+                                    co***********95, distribution='normal')
 ellipse_hotelling = confidence_ellipse(df, x='x', y='y', 
-                                       conf_level=0.95, distribution='hotelling')
+                                       co***********95, distribution='hotelling')
 
 # Plot
-fig, ax = plt.subplots(figsize=(10, 8))
-ax.scatter(df['x'], df['y'], alpha=0.6, s=50, label='Data (n=30)')
+fig, ax = pl********************10, 8))
+ax.scatter(df['x'], df['y'], al*****.6, s=50, label='Data (n=30)')
 ax.plot(ellipse_normal['x'], ellipse_normal['y'], 
-        'b-', linewidth=2, label='Normal (χ²)')
+        'b-', li*******=2, label='Normal (χ²)')
 ax.plot(ellipse_hotelling['x'], ellipse_hotelling['y'], 
-        'r-', linewidth=2, label="Hotelling (T²)")
+        'r-', li*******=2, label="Hotelling (T²)")
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_title('Comparison: Normal vs Hotelling Distribution (Small Sample)')
 ax.legend()
-ax.grid(True, alpha=0.3)
+ax.grid(True, al*****.3)
 ax.axis('equal')
 plt.tight_layout()
 plt.show()
