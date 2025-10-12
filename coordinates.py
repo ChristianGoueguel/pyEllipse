@@ -1,8 +1,8 @@
 """
 Coordinate Points of the Hotelling's T-squared Ellipse
 
-Author: Converted from R to Python
-Original R author: Christian L. Goueguel
+
+
 
 This module calculates the coordinate points for drawing a Hotelling's T-squared
 ellipse based on multivariate data for both 2D and 3D representations.
