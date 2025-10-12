@@ -4,7 +4,7 @@ from scipy import stats
 from typing import Union, Optional
 from itertools import product
 
-def hotelling_coord(
+def hotelling_coordinates(
     x: Union[np.ndarray, pd.DataFrame],
     pcx: int = 1,
     pcy: int = 2,
