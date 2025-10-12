@@ -5,7 +5,7 @@ from typing import Union, Optional, Dict
 import sys
 
 
-def hotelling_param(
+def hotelling_parameters(
     x: Union[np.ndarray, pd.DataFrame],
     k: int = 2,
     pcx: int = 1,
