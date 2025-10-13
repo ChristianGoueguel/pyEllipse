@@ -107,7 +107,9 @@ addopts = "--cov=src/pyellipse --cov-report=html --cov-report=term-missing"
 
 [tool.coverage.run]
 source = ["src"]
-
+# pyproject.toml
+[tool.pyright]
+exclude = ["scripts/generate_readme_plots.py"]
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
