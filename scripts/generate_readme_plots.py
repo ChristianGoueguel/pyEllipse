@@ -307,8 +307,6 @@ def main():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
+
     main()
-=======
-    main()
->>>>>>> 37112e3 (Initial commit: pyEllipse package setup)
+
