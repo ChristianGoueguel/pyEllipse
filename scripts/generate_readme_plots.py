@@ -115,56 +115,56 @@ def plot2_grouped_ellipses():
     print("✓ Generated: example2_grouped_ellipses.png")
 
 
-def plot3_3d_ellipsoid():
-    """Example 3: 3D Ellipsoid"""
-    np.random.seed(42)
-    data = np.random.randn(100, 10)
+# def plot3_3d_ellipsoid():
+#     """Example 3: 3D Ellipsoid"""
+#     np.random.seed(42)
+#     data = np.random.randn(100, 10)
     
-    pca = PCA(n_components=5)
-    pca_scores = pca.fit_transform(data)
+#     pca = PCA(n_components=5)
+#     pca_scores = pca.fit_transform(data)
     
-    fig = plt.figure(figsize=(12, 10))
-    ax = fig.add_subplot(111, projection='3d')
+#     fig = plt.figure(figsize=(12, 10))
+#     ax = fig.add_subplot(111, projection='3d')
     
-    # For 3D scatter plot, pass z-coordinates as third positional argument
-    # Extract coordinates to avoid type checker issues
-    xs = pca_scores[:, 0]
-    ys = pca_scores[:, 1]
-    zs = pca_scores[:, 2]
+#     # For 3D scatter plot, pass z-coordinates as third positional argument
+#     # Extract coordinates to avoid type checker issues
+#     xs = pca_scores[:, 0]
+#     ys = pca_scores[:, 1]
+#     zs = pca_scores[:, 2]
     
-    ax.scatter(xs, ys, zs,
-               alpha=0.6, s=40, c='steelblue', edgecolors='navy', 
-               linewidth=0.5, label='Samples')
+#     ax.scatter(xs, ys, zs,
+#                alpha=0.6, s=40, c='steelblue', edgecolors='navy', 
+#                linewidth=0.5, label='Samples')
     
-    # Generate simple ellipsoid surface
-    u = np.linspace(0, 2 * np.pi, 40)
-    v = np.linspace(0, np.pi, 40)
-    x_sphere = np.outer(np.cos(u), np.sin(v))
-    y_sphere = np.outer(np.sin(u), np.sin(v))
-    z_sphere = np.outer(np.ones(np.size(u)), np.cos(v))
+#     # Generate simple ellipsoid surface
+#     u = np.linspace(0, 2 * np.pi, 40)
+#     v = np.linspace(0, np.pi, 40)
+#     x_sphere = np.outer(np.cos(u), np.sin(v))
+#     y_sphere = np.outer(np.sin(u), np.sin(v))
+#     z_sphere = np.outer(np.ones(np.size(u)), np.cos(v))
     
-    # Scale by standard deviations
-    std_x = np.std(pca_scores[:, 0]) * 2.45
-    std_y = np.std(pca_scores[:, 1]) * 2.45
-    std_z = np.std(pca_scores[:, 2]) * 2.45
+#     # Scale by standard deviations
+#     std_x = np.std(pca_scores[:, 0]) * 2.45
+#     std_y = np.std(pca_scores[:, 1]) * 2.45
+#     std_z = np.std(pca_scores[:, 2]) * 2.45
     
-    x_ellipsoid = x_sphere * std_x + np.mean(pca_scores[:, 0])
-    y_ellipsoid = y_sphere * std_y + np.mean(pca_scores[:, 1])
-    z_ellipsoid = z_sphere * std_z + np.mean(pca_scores[:, 2])
+#     x_ellipsoid = x_sphere * std_x + np.mean(pca_scores[:, 0])
+#     y_ellipsoid = y_sphere * std_y + np.mean(pca_scores[:, 1])
+#     z_ellipsoid = z_sphere * std_z + np.mean(pca_scores[:, 2])
     
-    ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid,
-                    alpha=0.3, color='red', edgecolor='none')
+#     ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid,
+#                     alpha=0.3, color='red', edgecolor='none')
     
-    ax.set_xlabel('PC1', fontsize=12, fontweight='bold', labelpad=10)
-    ax.set_ylabel('PC2', fontsize=12, fontweight='bold', labelpad=10)
-    ax.set_zlabel('PC3', fontsize=12, fontweight='bold', labelpad=10)
-    ax.set_title('3D Hotelling Ellipsoid (95% Confidence)', 
-                 fontsize=14, fontweight='bold', pad=20)
-    ax.view_init(elev=20, azim=45)
-    plt.tight_layout()
-    plt.savefig(img_dir / 'example3_3d_ellipsoid.png', dpi=300, bbox_inches='tight')
-    plt.close()
-    print("✓ Generated: example3_3d_ellipsoid.png")
+#     ax.set_xlabel('PC1', fontsize=12, fontweight='bold', labelpad=10)
+#     ax.set_ylabel('PC2', fontsize=12, fontweight='bold', labelpad=10)
+#     ax.set_zlabel('PC3', fontsize=12, fontweight='bold', labelpad=10)
+#     ax.set_title('3D Hotelling Ellipsoid (95% Confidence)', 
+#                  fontsize=14, fontweight='bold', pad=20)
+#     ax.view_init(elev=20, azim=45)
+#     plt.tight_layout()
+#     plt.savefig(img_dir / 'example3_3d_ellipsoid.png', dpi=300, bbox_inches='tight')
+#     plt.close()
+#     print("✓ Generated: example3_3d_ellipsoid.png")
 
 
 def plot4_outlier_detection():
@@ -293,7 +293,7 @@ def main():
     
     plot1_basic_hotelling_ellipse()
     plot2_grouped_ellipses()
-    plot3_3d_ellipsoid()
+    # plot3_3d_ellipsoid()
     plot4_outlier_detection()
     plot5_distribution_comparison()
     
