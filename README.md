@@ -349,8 +349,8 @@ plt.show()
 |---------|----------------|-----------------|---------------------|
 | **Input** | Component scores | Component scores | Raw data |
 | **Purpose** | T² statistics | Plot coordinates | Plot coordinates |
-| **Grouping** | ❌ | ❌ | ✅ |
-| **Robust** | ❌ | ❌ | ✅ |
+| **Grouping** | -- | -- | Yes |
+| **Robust** | -- | -- | Yes |
 | **2D/3D** | 2D only for ellipse params | Both | Both |
 | **Distribution** | Hotelling only | Hotelling only | Normal or Hotelling |
 | **Use Case** | Outlier detection, QC | Visualizing PCA | Exploratory data analysis |

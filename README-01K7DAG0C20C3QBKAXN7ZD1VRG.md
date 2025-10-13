@@ -4,7 +4,7 @@ runme:
     relativePath: README.md
   session:
     id: 01K7DAG0C20C3QBKAXN7ZD1VRG
-    updated: 2025-10-12 16:52:40-07:00
+    updated: 2025-10-12 16:59:43-07:00
 ---
 
 # pyEllipse
@@ -358,8 +358,8 @@ plt.show()
 |---------|----------------|-----------------|---------------------|
 | **Input** | Component scores | Component scores | Raw data |
 | **Purpose** | T² statistics | Plot coordinates | Plot coordinates |
-| **Grouping** | ❌ | ❌ | ✅ |
-| **Robust** | ❌ | ❌ | ✅ |
+| **Grouping** | -- | -- | Yes |
+| **Robust** | -- | -- | Yes |
 | **2D/3D** | 2D only for ellipse params | Both | Both |
 | **Distribution** | Hotelling only | Hotelling only | Normal or Hotelling |
 | **Use Case** | Outlier detection, QC | Visualizing PCA | Exploratory data analysis |
