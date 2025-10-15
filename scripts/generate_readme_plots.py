@@ -24,10 +24,36 @@ img_dir.mkdir(exist_ok=True)
 plt.style.use('seaborn-v0_8-darkgrid')  # Modern style
 
 
+def load_wine_data():
+    """Load wine dataset and add cultivar labels"""
+    wine_df = pd.read_csv('data/wine.csv')
+    
+    # Add cultivar labels based on standard Wine dataset structure
+    # Class 1: samples 0-58 (59 samples)
+    # Class 2: samples 59-129 (71 samples)  
+    # Class 3: samples 130-177 (48 samples)
+    cultivar = []
+    for i in range(len(wine_df)):
+        if i < 59:
+            cultivar.append('Cultivar 1')
+        elif i < 130:
+            cultivar.append('Cultivar 2')
+        else:
+            cultivar.append('Cultivar 3')
+    
+    wine_df['Cultivar'] = cultivar
+    return wine_df
+
+
 def plot1_basic_hotelling_ellipse():
-    """Example 1: Basic Hotelling's T² Ellipse"""
-    np.random.seed(42)
-    data = np.random.randn(100, 10)
+    """Example 1: Basic Hotelling's T² Ellipse using Wine Data"""
+    wine_df = load_wine_data()
+    
+    # Select chemical features for PCA
+    feature_cols = ['Alcohol', 'Malic_Acid', 'Ash', 'Ash_Alcanity', 'Magnesium', 
+                    'Total_Phenols', 'Flavanoids', 'Nonflavanoid_Phenols', 
+                    'Proanthocyanins', 'Color_Intensity', 'Hue', 'OD280', 'Proline']
+    data = wine_df[feature_cols].values
     
     pca = PCA()
     pca_scores = pca.fit_transform(data)
@@ -45,13 +71,13 @@ def plot1_basic_hotelling_ellipse():
     
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.scatter(pca_scores[:, 0], pca_scores[:, 1], alpha=0.6, s=50, 
-               color='steelblue', edgecolors='navy', linewidth=0.5, label='Samples')
+               color='steelblue', edgecolors='navy', linewidth=0.5, label='Wine Samples')
     ax.plot(ellipse_95_x, ellipse_95_y, 'r-', linewidth=2.5, label='95% Confidence')
     ax.plot(ellipse_99_x, ellipse_99_y, 'orange', linewidth=2.5, 
             linestyle='--', label='99% Confidence')
     ax.set_xlabel('PC1', fontsize=12, fontweight='bold')
     ax.set_ylabel('PC2', fontsize=12, fontweight='bold')
-    ax.set_title("Hotelling's T² Ellipse from PCA Scores", 
+    ax.set_title("Hotelling's T² Ellipse for Wine Chemical Data", 
                  fontsize=14, fontweight='bold', pad=20)
     ax.legend(fontsize=11, frameon=True, shadow=True)
     ax.grid(True, alpha=0.3)
@@ -63,116 +89,113 @@ def plot1_basic_hotelling_ellipse():
 
 
 def plot2_grouped_ellipses():
-    """Example 2: Grouped Confidence Ellipses"""
-    np.random.seed(42)
-    df = pd.DataFrame({
-        'SiO2': np.random.randn(150) + 70,
-        'Na2O': np.random.randn(150) + 15,
-        'type': np.repeat(['Glass_A', 'Glass_B', 'Glass_C'], 50)
-    })
+    """Example 2: Grouped Confidence Ellipses by Wine Cultivar"""
+    wine_df = load_wine_data()
     
-    # Add structure to groups
-    df.loc[df['type'] == 'Glass_A', 'SiO2'] += 2
-    df.loc[df['type'] == 'Glass_B', 'Na2O'] += 2
-    df.loc[df['type'] == 'Glass_C', 'SiO2'] -= 1
-    
-    colors = {'Glass_A': '#E74C3C', 'Glass_B': '#3498DB', 'Glass_C': '#2ECC71'}
+    colors = {'Cultivar 1': '#E74C3C', 'Cultivar 2': '#3498DB', 'Cultivar 3': '#2ECC71'}
     
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    # Plot data and ellipses for each group
-    for glass_type, color in colors.items():
-        subset = df[df['type'] == glass_type]
+    # Plot data and ellipses for each cultivar
+    for cultivar, color in colors.items():
+        subset = wine_df[wine_df['Cultivar'] == cultivar]
         
         # Plot points
-        ax.scatter(subset['SiO2'], subset['Na2O'], 
+        ax.scatter(subset['Alcohol'], subset['Total_Phenols'], 
                    c=color, alpha=0.5, s=60, edgecolors='black', 
-                   linewidth=0.5, label=f'{glass_type} samples')
+                   linewidth=0.5, label=f'{cultivar} samples')
         
         # Generate simple ellipse
-        mean_x = subset['SiO2'].mean()
-        mean_y = subset['Na2O'].mean()
-        std_x = subset['SiO2'].std()
-        std_y = subset['Na2O'].std()
+        mean_x = subset['Alcohol'].mean()
+        mean_y = subset['Total_Phenols'].mean()
+        std_x = subset['Alcohol'].std()
+        std_y = subset['Total_Phenols'].std()
         
         theta = np.linspace(0, 2 * np.pi, 361)
         ellipse_x = mean_x + 2.45 * std_x * np.cos(theta)
         ellipse_y = mean_y + 2.45 * std_y * np.sin(theta)
         
         ax.plot(ellipse_x, ellipse_y, c=color, linewidth=3, 
-                label=f'{glass_type} 95% CI')
+                label=f'{cultivar} 95% CI')
     
-    ax.set_xlabel('SiO₂ (%)', fontsize=13, fontweight='bold')
-    ax.set_ylabel('Na₂O (%)', fontsize=13, fontweight='bold')
-    ax.set_title('Confidence Ellipses by Glass Type', 
+    ax.set_xlabel('Alcohol (%)', fontsize=13, fontweight='bold')
+    ax.set_ylabel('Total Phenols', fontsize=13, fontweight='bold')
+    ax.set_title('Confidence Ellipses by Wine Cultivar', 
                  fontsize=15, fontweight='bold', pad=20)
     ax.legend(fontsize=10, frameon=True, shadow=True, ncol=2)
     ax.grid(True, alpha=0.3)
-    ax.axis('equal')
     plt.tight_layout()
     plt.savefig(img_dir / 'example2_grouped_ellipses.png', dpi=300, bbox_inches='tight')
     plt.close()
     print("✓ Generated: example2_grouped_ellipses.png")
 
 
-# def plot3_3d_ellipsoid():
-#     """Example 3: 3D Ellipsoid"""
-#     np.random.seed(42)
-#     data = np.random.randn(100, 10)
+def plot3_3d_ellipsoid():
+    """Example 3: 3D Ellipsoid for Wine Data"""
+    wine_df = load_wine_data()
     
-#     pca = PCA(n_components=5)
-#     pca_scores = pca.fit_transform(data)
+    # Select chemical features for PCA
+    feature_cols = ['Alcohol', 'Malic_Acid', 'Ash', 'Ash_Alcanity', 'Magnesium', 
+                    'Total_Phenols', 'Flavanoids', 'Nonflavanoid_Phenols', 
+                    'Proanthocyanins', 'Color_Intensity', 'Hue', 'OD280', 'Proline']
+    data = wine_df[feature_cols].values
     
-#     fig = plt.figure(figsize=(12, 10))
-#     ax = fig.add_subplot(111, projection='3d')
+    pca = PCA(n_components=5)
+    pca_scores = pca.fit_transform(data)
     
-#     # For 3D scatter plot, pass z-coordinates as third positional argument
-#     # Extract coordinates to avoid type checker issues
-#     xs = pca_scores[:, 0]
-#     ys = pca_scores[:, 1]
-#     zs = pca_scores[:, 2]
+    fig = plt.figure(figsize=(12, 10))
+    ax = fig.add_subplot(111, projection='3d')
     
-#     ax.scatter(xs, ys, zs,
-#                alpha=0.6, s=40, c='steelblue', edgecolors='navy', 
-#                linewidth=0.5, label='Samples')
+    # For 3D scatter plot, pass z-coordinates as third positional argument
+    # Extract coordinates to avoid type checker issues
+    xs = pca_scores[:, 0]
+    ys = pca_scores[:, 1]
+    zs = pca_scores[:, 2]
     
-#     # Generate simple ellipsoid surface
-#     u = np.linspace(0, 2 * np.pi, 40)
-#     v = np.linspace(0, np.pi, 40)
-#     x_sphere = np.outer(np.cos(u), np.sin(v))
-#     y_sphere = np.outer(np.sin(u), np.sin(v))
-#     z_sphere = np.outer(np.ones(np.size(u)), np.cos(v))
+    ax.scatter(xs, ys, 
+               alpha=0.6, s=40, c='steelblue', edgecolors='navy', 
+               linewidth=0.5, label='Wine Samples')
     
-#     # Scale by standard deviations
-#     std_x = np.std(pca_scores[:, 0]) * 2.45
-#     std_y = np.std(pca_scores[:, 1]) * 2.45
-#     std_z = np.std(pca_scores[:, 2]) * 2.45
+    # Generate simple ellipsoid surface
+    u = np.linspace(0, 2 * np.pi, 40)
+    v = np.linspace(0, np.pi, 40)
+    x_sphere = np.outer(np.cos(u), np.sin(v))
+    y_sphere = np.outer(np.sin(u), np.sin(v))
+    z_sphere = np.outer(np.ones(np.size(u)), np.cos(v))
     
-#     x_ellipsoid = x_sphere * std_x + np.mean(pca_scores[:, 0])
-#     y_ellipsoid = y_sphere * std_y + np.mean(pca_scores[:, 1])
-#     z_ellipsoid = z_sphere * std_z + np.mean(pca_scores[:, 2])
+    # Scale by standard deviations
+    std_x = np.std(pca_scores[:, 0]) * 2.45
+    std_y = np.std(pca_scores[:, 1]) * 2.45
+    std_z = np.std(pca_scores[:, 2]) * 2.45
     
-#     ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid,
-#                     alpha=0.3, color='red', edgecolor='none')
+    x_ellipsoid = x_sphere * std_x + np.mean(pca_scores[:, 0])
+    y_ellipsoid = y_sphere * std_y + np.mean(pca_scores[:, 1])
+    z_ellipsoid = z_sphere * std_z + np.mean(pca_scores[:, 2])
     
-#     ax.set_xlabel('PC1', fontsize=12, fontweight='bold', labelpad=10)
-#     ax.set_ylabel('PC2', fontsize=12, fontweight='bold', labelpad=10)
-#     ax.set_zlabel('PC3', fontsize=12, fontweight='bold', labelpad=10)
-#     ax.set_title('3D Hotelling Ellipsoid (95% Confidence)', 
-#                  fontsize=14, fontweight='bold', pad=20)
-#     ax.view_init(elev=20, azim=45)
-#     plt.tight_layout()
-#     plt.savefig(img_dir / 'example3_3d_ellipsoid.png', dpi=300, bbox_inches='tight')
-#     plt.close()
-#     print("✓ Generated: example3_3d_ellipsoid.png")
+    ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid,
+                    alpha=0.3, color='red', edgecolor='none')
+    
+    ax.set_xlabel('PC1', fontsize=12, fontweight='bold', labelpad=10)
+    ax.set_ylabel('PC2', fontsize=12, fontweight='bold', labelpad=10)
+    ax.set_zlabel('PC3', fontsize=12, fontweight='bold', labelpad=10)
+    ax.set_title('3D Hotelling Ellipsoid for Wine Data (95% Confidence)', 
+                 fontsize=14, fontweight='bold', pad=20)
+    ax.view_init(elev=20, azim=45)
+    plt.tight_layout()
+    plt.savefig(img_dir / 'example3_3d_ellipsoid.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print("✓ Generated: example3_3d_ellipsoid.png")
 
 
 def plot4_outlier_detection():
-    """Example 4: Outlier Detection"""
-    np.random.seed(42)
-    normal_data = np.random.randn(95, 10)
-    outliers = np.random.randn(5, 10) * 3 + 5
-    data = np.vstack([normal_data, outliers])
+    """Example 4: Outlier Detection in Wine Data"""
+    wine_df = load_wine_data()
+    
+    # Select chemical features for PCA
+    feature_cols = ['Alcohol', 'Malic_Acid', 'Ash', 'Ash_Alcanity', 'Magnesium', 
+                    'Total_Phenols', 'Flavanoids', 'Nonflavanoid_Phenols', 
+                    'Proanthocyanins', 'Color_Intensity', 'Hue', 'OD280', 'Proline']
+    data = wine_df[feature_cols].values
     
     pca = PCA()
     pca_scores = pca.fit_transform(data)
@@ -212,7 +235,7 @@ def plot4_outlier_detection():
     ax1.plot(ellipse_x, ellipse_y, 'g-', linewidth=2.5, label='95% Limit')
     ax1.set_xlabel('PC1', fontsize=12, fontweight='bold')
     ax1.set_ylabel('PC2', fontsize=12, fontweight='bold')
-    ax1.set_title('PCA Score Plot with Outliers', fontsize=13, fontweight='bold')
+    ax1.set_title('PCA Score Plot with Outliers (Wine Data)', fontsize=13, fontweight='bold')
     ax1.legend(fontsize=11, frameon=True, shadow=True)
     ax1.grid(True, alpha=0.3)
     ax1.axis('equal')
@@ -236,16 +259,15 @@ def plot4_outlier_detection():
 
 
 def plot5_distribution_comparison():
-    """Example 5: Normal vs Hotelling Comparison"""
-    np.random.seed(42)
-    df = pd.DataFrame({
-        'x': np.random.randn(30),
-        'y': np.random.randn(30)
-    })
+    """Example 5: Normal vs Hotelling Comparison using Wine Subset"""
+    wine_df = load_wine_data()
+    
+    # Use a subset for small sample demonstration
+    subset = wine_df.sample(n=30, random_state=42)
     
     theta = np.linspace(0, 2 * np.pi, 361)
-    mean_x, mean_y = df['x'].mean(), df['y'].mean()
-    std_x, std_y = df['x'].std(), df['y'].std()
+    mean_x, mean_y = subset['Alcohol'].mean(), subset['Color_Intensity'].mean()
+    std_x, std_y = subset['Alcohol'].std(), subset['Color_Intensity'].std()
     
     # Normal (chi-square based)
     normal_x = mean_x + 2.45 * std_x * np.cos(theta)
@@ -256,25 +278,26 @@ def plot5_distribution_comparison():
     hotelling_y = mean_y + 2.65 * std_y * np.sin(theta)
     
     fig, ax = plt.subplots(figsize=(10, 8))
-    ax.scatter(df['x'], df['y'], alpha=0.7, s=60, color='steelblue',
-               edgecolors='navy', linewidth=0.8, label='Data (n=30)', zorder=3)
+    ax.scatter(subset['Alcohol'], subset['Color_Intensity'], alpha=0.7, s=60, 
+               color='steelblue', edgecolors='navy', linewidth=0.8, 
+               label='Wine samples (n=30)', zorder=3)
     ax.plot(normal_x, normal_y, 'b-', linewidth=2.5, label='Normal (χ²)')
     ax.plot(hotelling_x, hotelling_y, 'r-', linewidth=2.5, 
             linestyle='--', label="Hotelling (T²)")
     
     ax.fill_between(normal_x, normal_y, alpha=0.1, color='blue')
     
-    ax.set_xlabel('X', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Y', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Alcohol (%)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Color Intensity', fontsize=12, fontweight='bold')
     ax.set_title('Distribution Comparison: Normal vs Hotelling (Small Sample)', 
                  fontsize=13, fontweight='bold', pad=20)
     ax.legend(fontsize=11, frameon=True, shadow=True, loc='upper right')
     ax.grid(True, alpha=0.3)
-    ax.axis('equal')
     
     # Add annotation
     ax.annotate('Hotelling gives\nwider bounds for\nsmall samples', 
-                xy=(1.5, 1.5), xytext=(2.5, 2.5),
+                xy=(max(subset['Alcohol'])-0.5, max(subset['Color_Intensity'])-1), 
+                xytext=(max(subset['Alcohol'])-0.3, max(subset['Color_Intensity'])+1),
                 fontsize=10, ha='left',
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.3',
@@ -288,12 +311,12 @@ def plot5_distribution_comparison():
 
 def main():
     """Generate all plots"""
-    print("Generating README plots...")
+    print("Generating README plots using Wine dataset...")
     print("-" * 50)
     
     plot1_basic_hotelling_ellipse()
     plot2_grouped_ellipses()
-    # plot3_3d_ellipsoid()
+    plot3_3d_ellipsoid()
     plot4_outlier_detection()
     plot5_distribution_comparison()
     
@@ -307,6 +330,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
-

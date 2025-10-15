@@ -6,9 +6,9 @@ A Python package for computing Hotelling's T² statistics and generating confide
 
 `pyEllipse` provides three main functions for analyzing multivariate data:
 
-1. **`hotelling_parameters`** - Calculate Hotelling's T² statistics and ellipse parameters
-2. **`hotelling_coordinates`** - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
-3. **`confidence_ellipse`** - Compute confidence ellipse/ellipsoid coordinates from raw data with grouping support
+1. __`hotelling_parameters`__ - Calculate Hotelling's T² statistics and ellipse parameters
+2. __`hotelling_coordinates`__ - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
+3. __`confidence_ellipse`__ - Compute confidence ellipse/ellipsoid coordinates from raw data with grouping support
 
 ## Installation
 
@@ -17,6 +17,7 @@ pip install numpy pandas scipy scikit-learn matplotlib
 ```
 
 Then install the package:
+
 ```bash
 pip install pyEllipse
 ```
@@ -28,12 +29,14 @@ pip install pyEllipse
 Calculate Hotelling's T² statistic and ellipse parameters from component scores (PCA, PLS, ICA, etc.).
 
 **Key Features:**
+
 - Computes T² statistic for outlier detection
 - Provides 95% and 99% confidence cutoffs
 - Calculates ellipse semi-axes for 2D plots
 - Supports automatic component selection via variance threshold
 
 **Parameters:**
+
 - `x`: Matrix/DataFrame of component scores
 - `k`: Number of components (default: 2)
 - `pcx`, `pcy`: Components for x/y axes (default: 1, 2)
@@ -41,6 +44,7 @@ Calculate Hotelling's T² statistic and ellipse parameters from component scores
 - `rel_tol`, `abs_tol`: Variance thresholds for component filtering
 
 **Returns:**
+
 - `Tsquared`: DataFrame with T² values for each observation
 - `cutoff_99pct`, `cutoff_95pct`: Confidence cutoffs
 - `Ellipse`: Semi-axes lengths (when k=2)
@@ -51,18 +55,21 @@ Calculate Hotelling's T² statistic and ellipse parameters from component scores
 Generate coordinate points for drawing Hotelling's T² ellipses/ellipsoids from component scores.
 
 **Key Features:**
+
 - Creates smooth ellipse boundaries for plotting
 - Supports both 2D ellipses and 3D ellipsoids
 - Uses Hotelling's T² distribution for confidence regions
 - Customizable number of points for smooth curves
 
 **Parameters:**
+
 - `x`: Matrix/DataFrame of component scores
 - `pcx`, `pcy`, `pcz`: Component indices for axes
 - `conf_limit`: Confidence level (default: 0.95)
 - `pts`: Number of points to generate (default: 200)
 
 **Returns:**
+
 - DataFrame with 'x', 'y' columns (2D) or 'x', 'y', 'z' columns (3D)
 
 ### 3. `confidence_ellipse` - Confidence Ellipse from Raw Data
@@ -70,6 +77,7 @@ Generate coordinate points for drawing Hotelling's T² ellipses/ellipsoids from 
 Compute confidence ellipse/ellipsoid coordinates directly from raw data with support for grouping.
 
 **Key Features:**
+
 - Works with raw data (not component scores)
 - Supports grouping by categorical variables
 - Choice of 'normal' (chi-square) or 'hotelling' (T²) distributions
@@ -77,6 +85,7 @@ Compute confidence ellipse/ellipsoid coordinates directly from raw data with sup
 - Unified API for 2D and 3D (via optional `z` parameter)
 
 **Parameters:**
+
 - `data`: DataFrame containing variables
 - `x`, `y`, `z`: Column names for axes (z is optional)
 - `group_by`: Column name for grouping
@@ -85,107 +94,129 @@ Compute confidence ellipse/ellipsoid coordinates directly from raw data with sup
 - `distribution`: 'normal' or 'hotelling' (default: 'normal')
 
 **Returns:**
+
 - DataFrame with coordinate points and optional grouping column
 
 ## Usage Examples
 
-### Example 1: Hotelling's T² from PCA Scores
+### Example 1: Hotelling's T² statistic and confidence ellipse from PCA Scores
 
 ```python
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.style.use('bmh')
+from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
-from pyEllipse import hotelling_parameters, hotelling_coordinates
+from pathlib import Path
+from pyEllipse import hotelling_parameters, hotelling_coordinates, confidence_ellipse
+```
 
-# Generate sample data
-np.random.seed(42)
-data = np.random.randn(100, 10)
+```python
+img_dir = Path("images")
+img_dir.mkdir(exist_ok=True)
+plt.style.use('seaborn-v0_8-darkgrid') 
+```
+
+```python
+def load_wine_data():
+    """Load wine dataset and add cultivar labels"""
+    wine_df = pd.read_csv('data/wine.csv')
+    
+    # Add cultivar labels based on standard Wine dataset structure
+    cultivar = []
+    for i in range(len(wine_df)):
+        if i < 59:
+            cultivar.append('Cultivar 1')
+        elif i < 130:
+            cultivar.append('Cultivar 2')
+        else:
+            cultivar.append('Cultivar 3')
+    
+    wine_df['Cultivar'] = cultivar
+    return wine_df
+```
+
+```python
+wine_df = load_wine_data()
+X = wine_df.drop('Cultivar', axis=1)
+y = wine_df['Cultivar']
 
 # Perform PCA
 pca = PCA()
-pca_scores = pca.fit_transform(data)
+pca_scores = pca.fit_transform(X)
+```
 
+```python
 # Calculate T² statistics
 results = hotelling_parameters(pca_scores, k=2)
-print(f"95% cutoff: {results['cutoff_95pct']:.3f}")
-print(f"99% cutoff: {results['cutoff_99pct']:.3f}")
+t2 = results['Tsquared'].values
 
 # Generate ellipse coordinates for plotting
 ellipse_95 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.95)
 ellipse_99 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.99)
 
-# Plot
-fig, ax = plt.subplots(figsize=(10, 8))
-ax.scatter(pca_scores[:, 0], pca_scores[:, 1], alpha=0.6, label='Samples')
-ax.plot(ellipse_95['x'], ellipse_95['y'], 'r-', linewidth=2, label='95% Confidence')
-ax.plot(ellipse_99['x'], ellipse_99['y'], 'orange', linewidth=2, label='99% Confidence')
-ax.set_xlabel('PC1')
-ax.set_ylabel('PC2')
-ax.set_title("Hotelling's T² Ellipse from PCA Scores")
-ax.legend()
-ax.grid(True, alpha=0.3)
-ax.axis('equal')
+# Plotting
+plt.figure(figsize=(10, 8))
+scatter = plt.scatter(pca_scores[:, 0], pca_scores[:, 1], c=t2, cmap='jet', alpha=0.85, s=70, label='Wine samples')
+cbar = plt.colorbar(scatter)
+cbar.set_label('Hotelling T² Statistic', rotation=270, labelpad=20)
+
+plt.plot(ellipse_95['x'], ellipse_95['y'], 'r-', linewidth=1, label='95% Confidence level')
+plt.plot(ellipse_99['x'], ellipse_99['y'], 'k-', linewidth=1, label='99% Confidence level')
+plt.xlim(-1000, 1000)
+plt.ylim(-50, 60)
+plt.xlabel('PC1', fontsize=14, labelpad=10, fontweight='bold')
+plt.ylabel('PC2', fontsize=14, labelpad=10, fontweight='bold')
+plt.title("Hotelling's T² Ellipse from PCA Scores", fontsize=16, pad=10, fontweight='bold')
+plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 plt.show()
 ```
+
+![Hotelling Ellipse](images/example1_hotelling_ellipse.png)
 
 ### Example 2: Confidence Ellipse from Raw Data
 
 ```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from pyEllipse import confidence_ellipse
+wine_df['PC1'] = pca_scores[:, 0]
+wine_df['PC2'] = pca_scores[:, 1]
 
-# Create sample dataset
-np.random.seed(42)
-df = pd.DataFrame({
-    'SiO2': np.random.randn(150) + 70,
-    'Na2O': np.random.randn(150) + 15,
-    'type': np.repeat(['Glass_A', 'Glass_B', 'Glass_C'], 50)
-})
+colors = ['red', 'blue', 'green']
+cultivars = wine_df['Cultivar'].unique()
+color_map = {cultivar: color for cultivar, color in zip(cultivars, colors)}
+point_colors = wine_df['Cultivar'].map(color_map)
 
-# Add some structure to groups
-df.loc[df['type'] == 'Glass_A', 'SiO2'] += 2
-df.loc[df['type'] == 'Glass_B', 'Na2O'] += 2
-df.loc[df['type'] == 'Glass_C', 'SiO2'] -= 1
+# Plotting PCA scores with confidence ellipses for each cultivar
+plt.figure(figsize=(10, 8))
 
-# Compute confidence ellipses for each group
-hotelling_coordinatess = confidence_ellipse(
-    df, 
-    x='SiO2', 
-    y='Na2O', 
-    group_by='type',
+for i, cultivar in enumerate(cultivars):
+    mask = wine_df['Cultivar'] == cultivar
+    plt.scatter(wine_df.loc[mask, 'PC1'], wine_df.loc[mask, 'PC2'], c=colors[i], alpha=0.6, s=70, label=cultivar) # type: ignore
+
+ellipse_coords = confidence_ellipse(
+    data=wine_df,
+    x='PC1',
+    y='PC2',
+    group_by='Cultivar',
     conf_level=0.95,
+    robust=True,
     distribution='hotelling'
 )
 
-# Plot
-fig, ax = plt.subplots(figsize=(10, 8))
+for i, cultivar in enumerate(cultivars):
+    ellipse_data = ellipse_coords[ellipse_coords['Cultivar'] == cultivar]
+    plt.plot(ellipse_data['x'], ellipse_data['y'], color=colors[i], linewidth=1, linestyle='-', label=f'{cultivar} (95% CI)')
 
-colors = {'Glass_A': 'red', 'Glass_B': 'blue', 'Glass_C': 'green'}
-
-# Plot data points
-for glass_type, color in colors.items():
-    subset = df[df['type'] == glass_type]
-    ax.scatter(subset['SiO2'], subset['Na2O'], 
-               c=color, alpha=0.5, s=50, label=f'{glass_type} data')
-
-# Plot ellipses
-for glass_type, color in colors.items():
-    ellipse_subset = hotelling_coordinatess[hotelling_coordinatess['type'] == glass_type]
-    ax.plot(ellipse_subset['x'], ellipse_subset['y'], 
-            c=color, linewidth=2.5, label=f'{glass_type} 95% CI')
-
-ax.set_xlabel('SiO2 (%)', fontsize=12)
-ax.set_ylabel('Na2O (%)', fontsize=12)
-ax.set_title('Confidence Ellipses by Glass Type', fontsize=14, fontweight='bold')
-ax.legend()
-ax.grid(True, alpha=0.3)
-ax.axis('equal')
-plt.tight_layout()
+plt.xlim(-1000, 1000)
+plt.ylim(-50, 60)
+plt.xlabel('PC1', fontsize=14, labelpad=10, fontweight='bold')
+plt.ylabel('PC2', fontsize=14, labelpad=10, fontweight='bold')
+plt.title("PCA Scores with Cultivar Group Confidence Ellipses", fontsize=16, pad=10, fontweight='bold')
+plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 plt.show()
 ```
+
+![Hotelling Ellipse](images/grouped_ellipses.png)
 
 ### Example 3: 3D Ellipsoid Visualization
 
@@ -240,136 +271,36 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Example 4: Outlier Detection with T²
-
-```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
-from pyEllipse import hotelling_parameters, hotelling_coordinates
-
-# Generate data with outliers
-np.random.seed(42)
-normal_data = np.random.randn(95, 10)
-outliers = np.random.randn(5, 10) * 3 + 5
-data = np.vstack([normal_data, outliers])
-
-# Perform PCA
-pca = PCA()
-pca_scores = pca.fit_transform(data)
-
-# Calculate T² statistics
-results = hotelling_parameters(pca_scores, k=2)
-t_squared = results['Tsquare']['value']
-cutoff_95 = results['cutoff_95pct']
-
-# Identify outliers
-outliers_mask = t_squared > cutoff_95
-
-# Generate ellipse
-ellipse = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.95)
-
-# Plot
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-
-# Score plot
-ax1.scatter(pca_scores[~outliers_mask, 0], pca_scores[~outliers_mask, 1],
-           c='blue', alpha=0.6, s=50, label='Normal')
-ax1.scatter(pca_scores[outliers_mask, 0], pca_scores[outliers_mask, 1],
-           c='red', alpha=0.8, s=100, marker='X', label='Outliers')
-ax1.plot(ellipse['x'], ellipse['y'], 'g-', linewidth=2, label='95% Limit')
-ax1.set_xlabel('PC1')
-ax1.set_ylabel('PC2')
-ax1.set_title('PCA Score Plot with Outliers')
-ax1.legend()
-ax1.grid(True, alpha=0.3)
-ax1.axis('equal')
-
-# T² plot
-ax2.bar(range(len(t_squared)), t_squared, 
-        color=['red' if x else 'blue' for x in outliers_mask],
-        alpha=0.6)
-ax2.axhline(y=cutoff_95, color='green', linestyle='--', 
-           linewidth=2, label='95% Cutoff')
-ax2.set_xlabel('Sample Index')
-ax2.set_ylabel("Hotelling's T²")
-ax2.set_title('T² Values for Outlier Detection')
-ax2.legend()
-ax2.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-
-print(f"Number of outliers detected: {outliers_mask.sum()}")
-print(f"Outlier indices: {np.where(outliers_mask)[0]}")
-```
-
-### Example 5: Comparing Normal vs Hotelling Distributions
-
-```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from pyEllipse import confidence_ellipse
-
-# Create small sample dataset (where distribution choice matters)
-np.random.seed(42)
-df = pd.DataFrame({
-    'x': np.random.randn(30),
-    'y': np.random.randn(30)
-})
-
-# Compute ellipses with different distributions
-ellipse_normal = confidence_ellipse(df, x='x', y='y', 
-                                    conf_level=0.95, distribution='normal')
-ellipse_hotelling = confidence_ellipse(df, x='x', y='y', 
-                                       conf_level=0.95, distribution='hotelling')
-
-# Plot
-fig, ax = plt.subplots(figsize=(10, 8))
-ax.scatter(df['x'], df['y'], alpha=0.6, s=50, label='Data (n=30)')
-ax.plot(ellipse_normal['x'], ellipse_normal['y'], 
-        'b-', linewidth=2, label='Normal (χ²)')
-ax.plot(ellipse_hotelling['x'], ellipse_hotelling['y'], 
-        'r-', linewidth=2, label="Hotelling (T²)")
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_title('Comparison: Normal vs Hotelling Distribution (Small Sample)')
-ax.legend()
-ax.grid(True, alpha=0.3)
-ax.axis('equal')
-plt.tight_layout()
-plt.show()
-```
-
 ## Key Differences Between Functions
 
 | Feature | `hotelling_parameters` | `hotelling_coordinates` | `confidence_ellipse` |
 |---------|----------------|-----------------|---------------------|
-| **Input** | Component scores | Component scores | Raw data |
-| **Purpose** | T² statistics | Plot coordinates | Plot coordinates |
-| **Grouping** | -- | -- | Yes |
-| **Robust** | -- | -- | Yes |
-| **2D/3D** | 2D only for ellipse params | Both | Both |
-| **Distribution** | Hotelling only | Hotelling only | Normal or Hotelling |
-| **Use Case** | Outlier detection, QC | Visualizing PCA | Exploratory data analysis |
+| __Input__ | Component scores | Component scores | Raw data |
+| __Purpose__ | T² statistics | Plot coordinates | Plot coordinates |
+| __Grouping__ | -- | -- | Yes |
+| __Robust__ | -- | -- | Yes |
+| __2D/3D__ | 2D only for ellipse params | Both | Both |
+| __Distribution__ | Hotelling only | Hotelling only | Normal or Hotelling |
+| __Use Case__ | Outlier detection, QC | Visualizing PCA | Exploratory data analysis |
 
 ## When to Use Each Function
 
 ### Use `hotelling_parameters` when:
+
 - You need T² statistics for outlier detection
 - You want confidence cutoff values
 - You're performing quality control or process monitoring
 - You need ellipse parameters (semi-axes lengths)
 
 ### Use `hotelling_coordinates` when:
+
 - You have PCA/PLS component scores
 - You want to visualize confidence regions on score plots
 - You need precise control over which components to plot
 - You're creating publication-quality figures from multivariate models
 
 ### Use `confidence_ellipse` when:
+
 - You're working with raw data (not scores)
 - You need to compare multiple groups
 - You want robust estimation for outlier-resistant analysis
@@ -389,7 +320,7 @@ plt.show()
 
 Hotelling's T² statistic is the multivariate analog of the univariate Student's t-statistic. For sample size `n` and `p` dimensions:
 
-```
+```sh
 T² = ((n - p) / (p(n - 1))) × MD²
 ```
 
@@ -405,11 +336,8 @@ As sample size increases, the two distributions converge.
 ## References
 
 1. Hotelling, H. (1931). The generalization of Student's ratio. *Annals of Mathematical Statistics*, 2(3), 360-378.
-
 2. Brereton, R. G. (2016). Hotelling's T-squared distribution, its relationship to the F distribution and its use in multivariate space. *Journal of Chemometrics*, 30(1), 18-21.
-
 3. Raymaekers, J., & Rousseeuw, P. J. (2019). Fast robust correlation for high dimensional data. *Technometrics*, 63(2), 184-198.
-
 4. Jackson, J. E. (1991). *A User's Guide to Principal Components*. Wiley.
 
 ## License
