@@ -287,9 +287,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```markdown
-![3D Confidence Ellipsoids](images/example3_3d_ellipsoids.png)
-```
+![Hotelling Ellipse](images/example3_3d_ellipsoid.png)
 
 ## Key Differences Between Functions
 
