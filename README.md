@@ -145,9 +145,11 @@ y = wine_df['Cultivar']
 # Perform PCA
 pca = PCA()
 pca_scores = pca.fit_transform(X)
+explained_var = pca.explained_variance_ratio_
 ```
 
 ```python
+plt.style.use('bmh')
 # Calculate T² statistics
 results = hotelling_parameters(pca_scores, k=2)
 t2 = results['Tsquared'].values
@@ -156,8 +158,8 @@ t2 = results['Tsquared'].values
 ellipse_95 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.95)
 ellipse_99 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.99)
 
-# Plotting
-plt.figure(figsize=(10, 8))
+# Plot the PCA scores with Hotelling's T² ellipse
+plt.figure(figsize=(8, 6))
 scatter = plt.scatter(pca_scores[:, 0], pca_scores[:, 1], c=t2, cmap='jet', alpha=0.85, s=70, label='Wine samples')
 cbar = plt.colorbar(scatter)
 cbar.set_label('Hotelling T² Statistic', rotation=270, labelpad=20)
@@ -166,8 +168,8 @@ plt.plot(ellipse_95['x'], ellipse_95['y'], 'r-', linewidth=1, label='95% Confide
 plt.plot(ellipse_99['x'], ellipse_99['y'], 'k-', linewidth=1, label='99% Confidence level')
 plt.xlim(-1000, 1000)
 plt.ylim(-50, 60)
-plt.xlabel('PC1', fontsize=14, labelpad=10, fontweight='bold')
-plt.ylabel('PC2', fontsize=14, labelpad=10, fontweight='bold')
+plt.xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
+plt.ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.title("Hotelling's T² Ellipse from PCA Scores", fontsize=16, pad=10, fontweight='bold')
 plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 plt.show()
@@ -175,7 +177,7 @@ plt.show()
 
 ![Hotelling Ellipse](images/example1_hotelling_ellipse.png)
 
-### Example 2: Confidence Ellipse from Raw Data
+### Example 2: Grouped Confidence Ellipses
 
 ```python
 wine_df['PC1'] = pca_scores[:, 0]
@@ -186,8 +188,8 @@ cultivars = wine_df['Cultivar'].unique()
 color_map = {cultivar: color for cultivar, color in zip(cultivars, colors)}
 point_colors = wine_df['Cultivar'].map(color_map)
 
-# Plotting PCA scores with confidence ellipses for each cultivar
-plt.figure(figsize=(10, 8))
+# Plott PCA scores with confidence ellipses for each cultivar
+plt.figure(figsize=(8, 6))
 
 for i, cultivar in enumerate(cultivars):
     mask = wine_df['Cultivar'] == cultivar
@@ -209,8 +211,8 @@ for i, cultivar in enumerate(cultivars):
 
 plt.xlim(-1000, 1000)
 plt.ylim(-50, 60)
-plt.xlabel('PC1', fontsize=14, labelpad=10, fontweight='bold')
-plt.ylabel('PC2', fontsize=14, labelpad=10, fontweight='bold')
+plt.xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
+plt.ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.title("PCA Scores with Cultivar Group Confidence Ellipses", fontsize=16, pad=10, fontweight='bold')
 plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 plt.show()
@@ -218,57 +220,75 @@ plt.show()
 
 ![Hotelling Ellipse](images/grouped_ellipses.png)
 
-### Example 3: 3D Ellipsoid Visualization
+### Example 3: Grouped 3D Confidence Ellipsoids
 
 ```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn.decomposition import PCA
-from pyEllipse import hotelling_coordinates
+wine_df['PC1'] = pca_scores[:, 0]
+wine_df['PC2'] = pca_scores[:, 1]
+wine_df['PC3'] = pca_scores[:, 2]
 
-# Generate sample data
-np.random.seed(42)
-data = np.random.randn(100, 10)
+colors = ['red', 'blue', 'green']
+light_colors = ['lightcoral', 'lightblue', 'lightgreen']
+cultivars = wine_df['Cultivar'].unique()
 
-# Perform PCA
-pca = PCA(n_components=5)
-pca_scores = pca.fit_transform(data)
-
-# Generate 3D ellipsoid coordinates (fewer points for 3D)
-ellipsoid = hotelling_coordinates(
-    pca_scores, 
-    pcx=1, 
-    pcy=2, 
-    pcz=3, 
-    conf_limit=0.95,
-    pts=40
+ellipse_coords = confidence_ellipse(
+    data=wine_df,
+    x='PC1',
+    y='PC2',
+    z='PC3',
+    group_by='Cultivar',
+    conf_level=0.95,
+    robust=True,
+    distribution='hotelling'
 )
 
-# Plot
-fig = plt.figure(figsize=(12, 10))
-ax = fig.add_subplot(111, projection='3d')
+fig = plt.figure(figsize=(10, 6), facecolor='white')
+ax = fig.add_subplot(111, projection='3d', facecolor='white')
 
-# Plot data points
-ax.scatter(pca_scores[:, 0], pca_scores[:, 1], pca_scores[:, 2],
-           alpha=0.6, s=30, label='Samples')
+for i, cultivar in enumerate(cultivars):
+    mask = wine_df['Cultivar'] == cultivar
+    ax.scatter(
+        wine_df.loc[mask, 'PC1'], 
+        wine_df.loc[mask, 'PC2'], 
+        wine_df.loc[mask, 'PC3'], # type: ignore
+        c=colors[i], 
+        alpha=0.8, 
+        s=50, 
+        label=cultivar, 
+        edgecolors='black', 
+        linewidth=0.5
+        )
+     
+    ellipse_data = ellipse_coords[ellipse_coords['Cultivar'] == cultivar]
+    n_points = int(np.sqrt(len(ellipse_data)))
+    
+    x_2d = ellipse_data['x'].values.reshape(n_points, -1)
+    y_2d = ellipse_data['y'].values.reshape(n_points, -1)
+    z_2d = ellipse_data['z'].values.reshape(n_points, -1)
+    
+    ax.plot_surface(
+        x_2d, 
+        y_2d, 
+        z_2d, 
+        color=light_colors[i], 
+        alpha=0.4, 
+        linewidth=0, 
+        antialiased=True
+        )
 
-# Plot ellipsoid surface
-grid_size = 40
-x_surf = np.array(ellipsoid['x']).reshape(grid_size, grid_size)
-y_surf = np.array(ellipsoid['y']).reshape(grid_size, grid_size)
-z_surf = np.array(ellipsoid['z']).reshape(grid_size, grid_size)
-
-ax.plot_surface(x_surf, y_surf, z_surf,
-                alpha=0.3, color='red', edgecolor='none')
-
-ax.set_xlabel('PC1')
-ax.set_ylabel('PC2')
-ax.set_zlabel('PC3')
-ax.set_title('3D Hotelling Ellipsoid (95% Confidence)')
+ax.set_xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=12, labelpad=5, fontweight='bold')
+ax.set_ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=12, labelpad=5, fontweight='bold')
+ax.set_zlabel(f'PC3 ({explained_var[2]*100:.2f}%)', fontsize=12, labelpad=1, fontweight='bold')
+ax.set_title('3D PCA Scores with 95% Confidence Ellipsoids', fontsize=16, fontweight='bold')
+ax.legend(loc='upper right', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
+ax.grid(True, alpha=0.3, color='gray')
+ax.view_init(elev=20, azim=45)
 plt.tight_layout()
 plt.show()
+```
+
+```markdown
+![3D Confidence Ellipsoids](images/example3_3d_ellipsoids.png)
 ```
 
 ## Key Differences Between Functions
