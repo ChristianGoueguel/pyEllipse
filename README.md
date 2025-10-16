@@ -17,12 +17,6 @@ A Python package for computing Hotelling's T² statistics and generating confide
 ## Installation
 
 ```bash
-pip install numpy pandas scipy scikit-learn matplotlib
-```
-
-Then install the package:
-
-```bash
 pip install pyEllipse
 ```
 
