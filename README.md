@@ -282,7 +282,7 @@ ax.set_zlabel(f'PC3 ({explained_var[2]*100:.2f}%)', fontsize=12, labelpad=1, fon
 ax.set_title('3D PCA Scores with 95% Confidence Ellipsoids', fontsize=16, fontweight='bold')
 ax.legend(loc='upper right', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 ax.grid(True, alpha=0.3, color='gray')
-ax.view_init(elev=20, azim=55)
+ax.view_init(elev=20, azim=65)
 plt.tight_layout()
 plt.show()
 ```
