@@ -107,6 +107,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.style.use('bmh')
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from pathlib import Path
 from pyEllipse import hotelling_parameters, hotelling_coordinates, confidence_ellipse
@@ -144,6 +145,8 @@ y = wine_df['Cultivar']
 
 # Perform PCA
 pca = PCA()
+SS = StandardScaler()
+X = SS.fit_transform(X)
 pca_scores = pca.fit_transform(X)
 explained_var = pca.explained_variance_ratio_
 ```
@@ -287,7 +290,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![Hotelling Ellipse](images/example3_3d_ellipsoid.png)
+![Hotelling Ellipse](images/3d_ellipsoids.png)
 
 ## Key Differences Between Functions
 
