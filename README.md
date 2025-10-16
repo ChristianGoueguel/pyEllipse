@@ -12,6 +12,7 @@ A Python package for computing Hotelling's T² statistics and generating confide
 
 [![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
+[![License](https://img.shields.io/github/license/ChristianGoueguel/pyEllipse.svg)](https://github.com/ChristianGoueguel/pyEllipse/blob/main/LICENSE)
 
 ## Installation
 
@@ -187,7 +188,7 @@ plt.legend(
 plt.show()
 ```
 
-![Hotelling Ellipse](images/example1_hotelling_ellipse.png)
+![Hotelling Ellipse](https://raw.githubusercontent.com/ChristianGoueguel/pyEllipse/main/images/example1_hotelling_ellipse.png)
 
 ### Example 2: Grouped Confidence Ellipses
 
@@ -239,7 +240,7 @@ plt.legend(
 plt.show()
 ```
 
-![Hotelling Ellipse](images/grouped_ellipses.png)
+![Hotelling Ellipse](https://raw.githubusercontent.com/ChristianGoueguel/pyEllipse/main/images/grouped_ellipses.png)
 
 ### Example 3: Grouped 3D Confidence Ellipsoids
 
@@ -311,7 +312,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![Hotelling Ellipse](images/3d_ellipsoids.png)
+![Hotelling Ellipse](https://raw.githubusercontent.com/ChristianGoueguel/pyEllipse/main/images/3d_ellipsoids.png)
 
 ## Key Differences Between Functions
 
@@ -348,14 +349,6 @@ plt.show()
 - You want robust estimation for outlier-resistant analysis
 - You need flexibility in distribution choice (normal vs Hotelling)
 
-## Dependencies
-
-- `numpy` - Numerical computations
-- `pandas` - Data manipulation
-- `scipy` - Statistical functions
-- `scikit-learn` - Robust covariance estimation (optional, for `robust=True`)
-- `matplotlib` - Plotting (for examples)
-
 ## Statistical Background
 
 ### Hotelling's T² Distribution
@@ -381,15 +374,3 @@ As sample size increases, the two distributions converge.
 2. Brereton, R. G. (2016). Hotelling's T-squared distribution, its relationship to the F distribution and its use in multivariate space. *Journal of Chemometrics*, 30(1), 18-21.
 3. Raymaekers, J., & Rousseeuw, P. J. (2019). Fast robust correlation for high dimensional data. *Technometrics*, 63(2), 184-198.
 4. Jackson, J. E. (1991). *A User's Guide to Principal Components*. Wiley.
-
-## License
-
-MIT License
-
-## Author
-
-Christian L. Goueguel
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request on GitHub.

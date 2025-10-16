@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyellipse"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tools for creating and analyzing confidence ellipses, including Hotelling's T-squared ellipses for multivariate statistical analysis and data visualization."
 authors = ["Christian L. Goueguel <christian.goueguel@gmail.com>"]
 license = "MIT"
