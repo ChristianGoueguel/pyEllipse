@@ -10,6 +10,9 @@ A Python package for computing Hotelling's T² statistics and generating confide
 2. __`hotelling_coordinates`__ - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
 3. __`confidence_ellipse`__ - Compute confidence ellipse/ellipsoid coordinates from raw data with grouping support
 
+[![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
+
 ## Installation
 
 ```bash
