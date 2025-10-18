@@ -91,14 +91,9 @@ def hotelling_parameters(
     nearzero_var = (relative_var < rel_tol) | (comp_var < abs_tol)
     
     if threshold is None:
-        result = _process_fixed_comp(
-            x, k, pcx, pcy, nearzero_var, comp_var, relative_var, rel_tol
-        )
+        result = _process_fixed_comp(x, k, pcx, pcy, nearzero_var, comp_var, relative_var, rel_tol)
     else:
-        result = _process_threshold(
-            x, threshold, nearzero_var, relative_var
-        )
-    
+        result = _process_threshold(x, threshold, nearzero_var, relative_var)
     return result
 
 
@@ -114,7 +109,6 @@ def _process_fixed_comp(
 ) -> Dict:
     """Process with fixed number of components."""
     result = {}
-    
     # Check for near-zero variance components
     if np.any(nearzero_var[:k]):
         removed_idx = np.where(nearzero_var[:k])[0]
@@ -128,7 +122,6 @@ def _process_fixed_comp(
         t2_values = _compute_tsquared(x, k)
     except Exception as e:
         raise RuntimeError(f"Error in T-squared calculation: {str(e)}")
-    
     result['Tsquared'] = t2_values['Tsq']
     result['cutoff_99pct'] = t2_values['Tsq_limit1']
     result['cutoff_95pct'] = t2_values['Tsq_limit2']
@@ -137,24 +130,17 @@ def _process_fixed_comp(
     # Calculate ellipse parameters for 2D case
     if k == 2:
         pcx_idx = pcx - 1
-        pcy_idx = pcy - 1
-        
+        pcy_idx = pcy - 1    
         if relative_var[pcx_idx] < rel_tol:
-            raise ValueError(
-                "'pcx' has a relative variance lower than 'rel_tol'. Please check!"
-            )
+            raise ValueError("'pcx' has a relative variance lower than 'rel_tol'. Please check!")
         if relative_var[pcy_idx] < rel_tol:
-            raise ValueError(
-                "'pcy' has a relative variance lower than 'rel_tol'. Please check!"
-            )
-        
+            raise ValueError("'pcy' has a relative variance lower than 'rel_tol'. Please check!")
         result['Ellipse'] = pd.DataFrame({
             'a_99pct': [np.sqrt(t2_values['Tsq_limit1'] * comp_var[pcx_idx])],
             'b_99pct': [np.sqrt(t2_values['Tsq_limit1'] * comp_var[pcy_idx])],
             'a_95pct': [np.sqrt(t2_values['Tsq_limit2'] * comp_var[pcx_idx])],
             'b_95pct': [np.sqrt(t2_values['Tsq_limit2'] * comp_var[pcy_idx])]
-        })
-    
+        })    
     return result
 
 
@@ -166,18 +152,14 @@ def _process_threshold(
 ) -> Dict:
     """Process with cumulative variance threshold."""
     result = {}
-    
     # Find number of components needed for threshold
     cum_var = np.cumsum(relative_var)
     k_indices = np.where(cum_var >= threshold)[0]
     
     if len(k_indices) == 0:
-        raise ValueError(
-            "Threshold is too high. Cannot find enough components to meet the threshold."
-        )
+        raise ValueError("Threshold is too high. Cannot find enough components to meet the threshold.")
     
     k = k_indices[0] + 1  
-    
     if k == 1:
         print(f"Warning: The specified threshold ({threshold:.3f}) is lower than "
               f"the variance explained by the first component ({relative_var[0]:.3f}). "
@@ -200,38 +182,33 @@ def _process_threshold(
         t2_values = _compute_tsquared(x, k)
     except Exception as e:
         raise RuntimeError(f"Error in T-squared calculation: {str(e)}")
-    
     result['Tsquared'] = t2_values['Tsq']
     result['cutoff_99pct'] = t2_values['Tsq_limit1']
     result['cutoff_95pct'] = t2_values['Tsq_limit2']
     result['nb_comp'] = k
-    
     return result
 
 
 def _compute_tsquared(x: np.ndarray, ncomp: int) -> Dict:
     """Compute Hotelling's T-squared statistic."""
     n = x.shape[0]
-    x_subset = x[:, :ncomp]
-    
+    x_subset = x[:, :ncomp]    
     mean = np.mean(x_subset, axis=0)
     cov = np.cov(x_subset, rowvar=False)
-    
+
     # Compute Mahalanobis distance for each observation
     diff = x_subset - mean
     inv_cov = np.linalg.inv(cov)
     md_sq = np.sum(diff @ inv_cov * diff, axis=1)
-    
+
     # Calculate cutoff values using F-distribution
     f_99 = stats.f.ppf(0.99, ncomp, n - ncomp)
     f_95 = stats.f.ppf(0.95, ncomp, n - ncomp)
-    
     tsq_limit1 = (ncomp * (n - 1) / (n - ncomp)) * f_99
     tsq_limit2 = (ncomp * (n - 1) / (n - ncomp)) * f_95
-    
+
     # Calculate T-squared values
     tsq_values = ((n - ncomp) / (ncomp * (n - 1))) * md_sq
-    
     tsq_df = pd.DataFrame({'value': tsq_values})
     
     return {

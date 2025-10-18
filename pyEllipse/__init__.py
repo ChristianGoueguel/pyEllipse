@@ -5,7 +5,7 @@ This package provides tools for creating and analyzing confidence ellipses,
 including Hotelling's T-squared ellipses for multivariate data analysis.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Christian L. Goueguel"
 __email__ = "christian.goueguel@gmail.com"
 

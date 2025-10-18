@@ -82,7 +82,6 @@ def hotelling_coordinates(
         result = _compute_ellipse(x, pcx, pcy, n, conf_limit, pts)
     else:
         result = _compute_ellipsoid(x, pcx, pcy, pcz, n, conf_limit, pts)
-    
     return result
 
 
@@ -98,22 +97,20 @@ def _compute_ellipse(
     Compute 2D ellipse coordinates.
     """
     theta = np.linspace(0, 2 * np.pi, pts)
+    
     p = 2
     f_quantile = stats.f.ppf(conf_limit, p, n - p)
     tsq_limit = ((p * (n - 1)) / (n - p)) * f_quantile
     
     x_col = x[:, pcx - 1]
     y_col = x[:, pcy - 1]
-    
     x_mean = np.mean(x_col)
     y_mean = np.mean(y_col)
-    
     x_var = np.var(x_col, ddof=1)
-    y_var = np.var(y_col, ddof=1)
-    
+    y_var = np.var(y_col, ddof=1)        
     x_coords = np.sqrt(tsq_limit * x_var) * np.cos(theta) + x_mean
     y_coords = np.sqrt(tsq_limit * y_var) * np.sin(theta) + y_mean
-    
+
     return pd.DataFrame({
         'x': x_coords,
         'y': y_coords
@@ -137,7 +134,6 @@ def _compute_ellipsoid(
     theta_grid, phi_grid = np.meshgrid(theta, phi)
     theta_flat = theta_grid.flatten()
     phi_flat = phi_grid.flatten()
-    
     sin_phi = np.sin(phi_flat)
     cos_phi = np.cos(phi_flat)
     cos_theta = np.cos(theta_flat)
@@ -146,19 +142,16 @@ def _compute_ellipsoid(
     p = 3
     f_quantile = stats.f.ppf(conf_limit, p, n - p)
     tsq_limit = ((p * (n - 1)) / (n - p)) * f_quantile
-    
+
     x_col = x[:, pcx - 1]
     y_col = x[:, pcy - 1]
     z_col = x[:, pcz - 1]
-    
     x_mean = np.mean(x_col)
     y_mean = np.mean(y_col)
     z_mean = np.mean(z_col)
-    
     x_var = np.var(x_col, ddof=1)
     y_var = np.var(y_col, ddof=1)
     z_var = np.var(z_col, ddof=1)
-    
     x_coords = np.sqrt(tsq_limit * x_var) * cos_theta * sin_phi + x_mean
     y_coords = np.sqrt(tsq_limit * y_var) * sin_theta * sin_phi + y_mean
     z_coords = np.sqrt(tsq_limit * z_var) * cos_phi + z_mean

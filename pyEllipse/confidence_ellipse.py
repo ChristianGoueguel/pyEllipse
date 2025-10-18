@@ -72,22 +72,19 @@ def confidence_ellipse(
         # 2D ellipse
         if group_by is None:
             selected_data = data[[x, y]].values
-            hotelling_coordinatess = _transform_2d(selected_data, conf_level, robust, distribution)
-            result = pd.DataFrame(hotelling_coordinatess, columns=['x', 'y'])
+            ellipse_coord = _transform_2d(selected_data, conf_level, robust, distribution)
+            result = pd.DataFrame(ellipse_coord, columns=['x', 'y'])
         else:
             if group_by not in data.columns:
                 raise ValueError(f"Column '{group_by}' not found in data.")
-            
             results = []
             for group_name, group_data in data.groupby(group_by):
                 selected_data = group_data[[x, y]].values
-                hotelling_coordinatess = _transform_2d(selected_data, conf_level, robust, distribution)
-                group_df = pd.DataFrame(hotelling_coordinatess, columns=['x', 'y'])
+                ellipse_coord = _transform_2d(selected_data, conf_level, robust, distribution)
+                group_df = pd.DataFrame(ellipse_coord, columns=['x', 'y'])
                 group_df[group_by] = group_name
                 results.append(group_df)
-            
             result = pd.concat(results, ignore_index=True)
-        
         return result
     else:
         # 3D ellipsoid
@@ -96,22 +93,19 @@ def confidence_ellipse(
         
         if group_by is None:
             selected_data = data[[x, y, z]].values
-            ellipsoid_coords = _transform_3d(selected_data, conf_level, robust, distribution)
-            result = pd.DataFrame(ellipsoid_coords, columns=['x', 'y', 'z'])
+            ellipsoid_coord = _transform_3d(selected_data, conf_level, robust, distribution)
+            result = pd.DataFrame(ellipsoid_coord, columns=['x', 'y', 'z'])
         else:
             if group_by not in data.columns:
-                raise ValueError(f"Column '{group_by}' not found in data.")
-            
+                raise ValueError(f"Column '{group_by}' not found in data.")    
             results = []
             for group_name, group_data in data.groupby(group_by):
                 selected_data = group_data[[x, y, z]].values
-                ellipsoid_coords = _transform_3d(selected_data, conf_level, robust, distribution)
-                group_df = pd.DataFrame(ellipsoid_coords, columns=['x', 'y', 'z'])
+                ellipsoid_coord = _transform_3d(selected_data, conf_level, robust, distribution)
+                group_df = pd.DataFrame(ellipsoid_coord, columns=['x', 'y', 'z'])
                 group_df[group_by] = group_name
                 results.append(group_df)
-            
             result = pd.concat(results, ignore_index=True)
-        
         return result
 
 
@@ -175,7 +169,6 @@ def _transform_2d(
     Y = np.sqrt(eigenvalues[1] * quantile) * np.sin(theta)
     R = np.column_stack([X, Y]) @ eigenvectors.T
     result = R + mean_vec
-    
     return result
 
 
@@ -244,5 +237,4 @@ def _transform_3d(
     Z = np.sqrt(eigenvalues[2] * quantile) * np.cos(phi_flat)
     R = np.column_stack([X, Y, Z]) @ eigenvectors.T
     result = R + mean_vec
-    
     return result
