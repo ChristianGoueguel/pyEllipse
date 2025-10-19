@@ -7,7 +7,6 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/ChristianGoueguel/pyEllipse"
 repository = "https://github.com/ChristianGoueguel/pyEllipse"
-Issues = "https://github.com/ChristianGoueguel/pyEllipse/issues"
 documentation = "https://christiangoueguel.github.io/pyEllipse"
 keywords = ["statistics", "confidence-ellipse", "hotelling", "multivariate", "visualization"]
 classifiers = [
@@ -121,3 +120,6 @@ exclude_lines = [
     "if 0:",
     "if __name__ == .__main__.:",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/ChristianGoueguel/pyEllipse/issues"
