@@ -1,6 +1,6 @@
 # pyEllipse
 
-A Python package for computing Hotelling's T² statistics and generating confidence ellipse/ellipsoid coordinates for multivariate data analysis and visualization.
+Robust Python tools for Hotelling's T² statistics and confidence ellipse/ellipsoid generation. Supports both normal and T² distributions for rigorous multivariate analysis and visualization.
 
 [![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
@@ -25,81 +25,6 @@ A Python package for computing Hotelling's T² statistics and generating confide
 ```bash
 pip install pyEllipse
 ```
-
-## Functions
-
-### 1. `hotelling_parameters` - Hotelling's T² Statistics
-
-Calculate Hotelling's T² statistic and ellipse parameters from component scores (PCA, PLS, ICA, etc.).
-
-**Key Features:**
-
-- Computes T² statistic for outlier detection
-- Provides 95% and 99% confidence cutoffs
-- Calculates ellipse semi-axes for 2D plots
-- Supports automatic component selection via variance threshold
-
-**Parameters:**
-
-- `x`: Matrix/DataFrame of component scores
-- `k`: Number of components (default: 2)
-- `pcx`, `pcy`: Components for x/y axes (default: 1, 2)
-- `threshold`: Cumulative variance threshold for automatic component selection
-- `rel_tol`, `abs_tol`: Variance thresholds for component filtering
-
-**Returns:**
-
-- `Tsquared`: DataFrame with T² values for each observation
-- `cutoff_99pct`, `cutoff_95pct`: Confidence cutoffs
-- `Ellipse`: Semi-axes lengths (when k=2)
-- `nb_comp`: Number of components used
-
-### 2. `hotelling_coordinates` - Hotelling's Ellipse Coordinates
-
-Generate coordinate points for drawing Hotelling's T² ellipses/ellipsoids from component scores.
-
-**Key Features:**
-
-- Creates smooth ellipse boundaries for plotting
-- Supports both 2D ellipses and 3D ellipsoids
-- Uses Hotelling's T² distribution for confidence regions
-- Customizable number of points for smooth curves
-
-**Parameters:**
-
-- `x`: Matrix/DataFrame of component scores
-- `pcx`, `pcy`, `pcz`: Component indices for axes
-- `conf_limit`: Confidence level (default: 0.95)
-- `pts`: Number of points to generate (default: 200)
-
-**Returns:**
-
-- DataFrame with 'x', 'y' columns (2D) or 'x', 'y', 'z' columns (3D)
-
-### 3. `confidence_ellipse` - Confidence Ellipse from Raw Data
-
-Compute confidence ellipse/ellipsoid coordinates directly from raw data with support for grouping.
-
-**Key Features:**
-
-- Works with raw data (not component scores)
-- Supports grouping by categorical variables
-- Choice of 'normal' (chi-square) or 'hotelling' (T²) distributions
-- Optional robust estimation for outlier resistance
-- Unified API for 2D and 3D (via optional `z` parameter)
-
-**Parameters:**
-
-- `data`: DataFrame containing variables
-- `x`, `y`, `z`: Column names for axes (z is optional)
-- `group_by`: Column name for grouping
-- `conf_level`: Confidence level (default: 0.95)
-- `robust`: Use robust estimation (default: False)
-- `distribution`: 'normal' or 'hotelling' (default: 'normal')
-
-**Returns:**
-
-- DataFrame with coordinate points and optional grouping column
 
 ## Usage Examples
 
@@ -342,25 +267,6 @@ plt.show()
 - You need to compare multiple groups
 - You want robust estimation for outlier-resistant analysis
 - You need flexibility in distribution choice (normal vs Hotelling)
-
-## Statistical Background
-
-### Hotelling's T² Distribution
-
-Hotelling's T² statistic is the multivariate analog of the univariate Student's t-statistic. For sample size `n` and `p` dimensions:
-
-```sh
-T² = ((n - p) / (p(n - 1))) × MD²
-```
-
-where MD² is the squared Mahalanobis distance. The T² distribution accounts for uncertainty in estimating both the mean vector and covariance matrix from sample data, making it more appropriate than the chi-square distribution for small to moderate sample sizes.
-
-### Distribution Choice
-
-- **Normal (χ²)**: Assumes known population parameters. Appropriate for very large samples (n > 100).
-- **Hotelling (T²/F)**: Accounts for parameter estimation uncertainty. Better for small samples (n < 100).
-
-As sample size increases, the two distributions converge.
 
 ## References
 
