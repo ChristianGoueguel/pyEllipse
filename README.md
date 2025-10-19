@@ -34,7 +34,6 @@ pip install pyEllipse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.style.use('bmh')
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
