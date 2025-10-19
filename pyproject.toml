@@ -11,7 +11,7 @@ Issues = "https://github.com/ChristianGoueguel/pyEllipse/issues"
 documentation = "https://christiangoueguel.github.io/pyEllipse"
 keywords = ["statistics", "confidence-ellipse", "hotelling", "multivariate", "visualization"]
 classifiers = [
-    "Development Status :: Stable",
+    "Development Status :: Production/Stable",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
