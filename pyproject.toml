@@ -10,7 +10,7 @@ repository = "https://github.com/ChristianGoueguel/pyEllipse"
 documentation = "https://christiangoueguel.github.io/pyEllipse"
 keywords = ["statistics", "confidence-ellipse", "hotelling", "multivariate", "visualization"]
 classifiers = [
-    "Development Status :: Production/Stable",
+    "Development Status :: Stable",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
