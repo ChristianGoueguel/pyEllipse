@@ -1,6 +1,6 @@
 # pyEllipse
 
-A Python package for computing Hotelling's T² statistics and generating confidence ellipse/ellipsoid coordinates for multivariate data analysis and visualization.
+A Python library for computing Hotelling's T² statistics and generating confidence ellipse/ellipsoid coordinates for multivariate data analysis and visualization.
 
 [![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
