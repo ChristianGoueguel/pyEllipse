@@ -2,6 +2,16 @@
 
 A Python package for computing Hotelling's T² statistics and generating confidence ellipse/ellipsoid coordinates for multivariate data analysis and visualization.
 
+[![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
+[![License](https://img.shields.io/github/license/ChristianGoueguel/pyEllipse.svg)](https://github.com/ChristianGoueguel/pyEllipse/blob/main/LICENSE)
+![PyPI - Downloads](https://img.shields.io/pypi/dd/pyEllipse)
+![PyPI - Downloads](https://img.shields.io/pypi/dw/pyEllipse)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pyEllipse)
+![PyPI - Format](https://img.shields.io/pypi/format/pyEllipse)
+![PyPI - Status](https://img.shields.io/pypi/status/pyEllipse)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/pyEllipse)
+
 ## Overview
 
 `pyEllipse` provides three main functions for analyzing multivariate data:
@@ -9,10 +19,6 @@ A Python package for computing Hotelling's T² statistics and generating confide
 1. __`hotelling_parameters`__ - Calculate Hotelling's T² statistics and ellipse parameters
 2. __`hotelling_coordinates`__ - Generate Hotelling's ellipse/ellipsoid coordinates from PCA/PLS scores
 3. __`confidence_ellipse`__ - Compute confidence ellipse/ellipsoid coordinates from raw data with grouping support
-
-[![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
-[![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
-[![License](https://img.shields.io/github/license/ChristianGoueguel/pyEllipse.svg)](https://github.com/ChristianGoueguel/pyEllipse/blob/main/LICENSE)
 
 ## Installation
 
@@ -109,12 +115,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from pathlib import Path
 from pyEllipse import hotelling_parameters, hotelling_coordinates, confidence_ellipse
-```
-
-```python
-img_dir = Path("images")
-img_dir.mkdir(exist_ok=True)
-plt.style.use('seaborn-v0_8-darkgrid') 
 ```
 
 ```python

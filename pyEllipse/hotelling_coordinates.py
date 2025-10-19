@@ -1,3 +1,6 @@
+"""
+**Module to compute coordinate points for Hotelling's T-squared confidence ellipses**
+"""
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -13,34 +16,32 @@ def hotelling_coordinates(
     pts: int = 200
 ) -> pd.DataFrame:
     """
-    Calculate coordinate points for drawing a Hotelling's T-squared ellipse.
-    This function generates points for both 2D ellipses and 3D ellipsoids based on
-    the Hotelling's T-squared distribution and specified components.
+    This module computes the boundary coordinate points needed to visualize Hotelling's 
+    T-squared confidence regions. It supports both 2D confidence ellipses and 3D confidence 
+    ellipsoids, calculating points based on the Hotelling's T-squared distribution for any 
+    user-defined confidence interval.
     
     Parameters
     ----------
-    x : np.ndarray or pd.DataFrame
-        Matrix or DataFrame containing scores from PCA, PLS, ICA, or other
-        dimensionality reduction methods. Each column represents a component,
-        and each row an observation.
-    pcx : int, default=1
-        Component to use for the x-axis (1-indexed).
-    pcy : int, default=2
-        Component to use for the y-axis (1-indexed).
-    pcz : int, optional
-        Component to use for the z-axis for 3D ellipsoids. If None (default),
-        a 2D ellipse is computed.
-    conf_limit : float, default=0.95
-        Confidence level for the ellipse (between 0 and 1). Default is 0.95
+    *   `x` : Input matrix or data frame containing scores from PCA, PLS, ICA, or other
+        dimensionality reduction methods. Each column represents a component, and each row an observation.
+
+    *   `pcx` : Component to use for the x-axis (default=1).
+
+    *   `pcy` : Component to use for the y-axis (default=2).
+    
+    *   `pcz` : Component to use for the z-axis for 3D ellipsoids. If None (default), a 2D ellipse is computed.
+    
+    *   `conf_limit` : Confidence level for the ellipse (between 0 and 1). Default is 0.95
         (95% confidence). Higher values result in larger ellipses.
-    pts : int, default=200
-        Number of points to generate for drawing the ellipse. Higher values
+    
+    *   `pts` : Number of points to generate for drawing the ellipse. Higher values 
         result in smoother ellipses but increase computation time.
     
     Returns
     -------
-    pd.DataFrame
-        DataFrame containing coordinate points:
+    DataFrame containing coordinate points:
+
         - For 2D ellipses: columns 'x' and 'y'
         - For 3D ellipsoids: columns 'x', 'y', and 'z'
     """
@@ -108,12 +109,12 @@ def _compute_ellipse(
     y_mean = np.mean(y_col)
     x_var = np.var(x_col, ddof=1)
     y_var = np.var(y_col, ddof=1)        
-    x_coords = np.sqrt(tsq_limit * x_var) * np.cos(theta) + x_mean
-    y_coords = np.sqrt(tsq_limit * y_var) * np.sin(theta) + y_mean
+    x_coord = np.sqrt(tsq_limit * x_var) * np.cos(theta) + x_mean
+    y_coord = np.sqrt(tsq_limit * y_var) * np.sin(theta) + y_mean
 
     return pd.DataFrame({
-        'x': x_coords,
-        'y': y_coords
+        'x': x_coord,
+        'y': y_coord
     })
 
 
@@ -152,12 +153,12 @@ def _compute_ellipsoid(
     x_var = np.var(x_col, ddof=1)
     y_var = np.var(y_col, ddof=1)
     z_var = np.var(z_col, ddof=1)
-    x_coords = np.sqrt(tsq_limit * x_var) * cos_theta * sin_phi + x_mean
-    y_coords = np.sqrt(tsq_limit * y_var) * sin_theta * sin_phi + y_mean
-    z_coords = np.sqrt(tsq_limit * z_var) * cos_phi + z_mean
+    x_coord = np.sqrt(tsq_limit * x_var) * cos_theta * sin_phi + x_mean
+    y_coord = np.sqrt(tsq_limit * y_var) * sin_theta * sin_phi + y_mean
+    z_coord = np.sqrt(tsq_limit * z_var) * cos_phi + z_mean
     
     return pd.DataFrame({
-        'x': x_coords,
-        'y': y_coords,
-        'z': z_coords
+        'x': x_coord,
+        'y': y_coord,
+        'z': z_coord
     })

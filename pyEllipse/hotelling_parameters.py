@@ -1,3 +1,6 @@
+"""
+**Module to compute Hotelling's T-squared statistics and parameters for confidence ellipses**
+"""
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -15,39 +18,39 @@ def hotelling_parameters(
     abs_tol: float = sys.float_info.epsilon
 ) -> Dict:
     """
-    Calculate Hotelling's T-squared statistic and ellipse parameters.
-    
+    This module provides functions to calculate Hotelling's T-squared statistics 
+    for multivariate data and to derive parameters for confidence ellipses based 
+    on Hotelling's T-squared distribution.
+
     Parameters
     ----------
-    x : np.ndarray or pd.DataFrame
-        Matrix or DataFrame containing scores from PCA, PLS, ICA, or similar methods.
-        Each column represents a component, and each row an observation.
-    k : int, default=2
-        Number of components to use. Ignored if threshold is provided.
-    pcx : int, default=1
-        Component to use for x-axis when k=2 (1-indexed).
-    pcy : int, default=2
-        Component to use for y-axis when k=2 (1-indexed).
-    threshold : float, optional
-        Cumulative explained variance threshold (0 to 1). If provided,
+    *   `x` : Input matrix or data frame containing scores from PCA, PLS, ICA, or similar methods. Each column represents a component, and each row an observation.
+
+    *   `k` : Number of components to use (default=2). Ignored if threshold is provided.
+
+    *   `pcx` : Component to use for x-axis when `k=2` (default=1).
+
+    *   `pcy` : Component to use for y-axis when `k=2` (default=2). Must be different from `pcx`.
+
+    *   `threshold` : Cumulative explained variance threshold (0 to 1). If provided,
         determines minimum number of components to explain at least this
         proportion of total variance.
-    rel_tol : float, default=0.001
-        Minimum proportion of total variance a component should explain
+
+    *   `rel_tol` : Minimum proportion of total variance a component should explain
         to be considered non-negligible (0.1% by default).
-    abs_tol : float, default=sys.float_info.epsilon
-        Minimum absolute variance a component should have to be
-        considered non-negligible.
+
+    *   `abs_tol` : Minimum absolute variance a component should have to be
+        considered non-negligible (default=`sys.float_info.epsilon`).
     
     Returns
     -------
-    dict
-        Dictionary containing:
+    Dictionary containing:
+
         - 'Tsquared': DataFrame with T-squared statistic for each observation
         - 'Ellipse': DataFrame with semi-axes lengths (only when k=2)
         - 'cutoff_99pct': T-squared cutoff at 99% confidence
         - 'cutoff_95pct': T-squared cutoff at 95% confidence
-        - 'nb_comp': Number of components used
+        - 'nb_comp': Number of components retained
     """
     if x is None:
         raise ValueError("Missing input data.")
@@ -68,7 +71,7 @@ def hotelling_parameters(
     
     x = np.asarray(x, dtype=float)
     n, p = x.shape
-    
+
     if threshold is not None:
         if not isinstance(threshold, (int, float)) or threshold <= 0 or threshold > 1:
             raise ValueError("Threshold must be a numeric value between 0 and 1.")

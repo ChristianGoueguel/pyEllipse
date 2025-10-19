@@ -1,3 +1,7 @@
+"""
+**Module to compute coordinate points for confidence regions based on 
+normal or Hotelling's T-squared distributions**
+"""
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -16,36 +20,40 @@ def confidence_ellipse(
     distribution: Literal["normal", "hotelling"] = "normal"
 ) -> pd.DataFrame:
     """
-    Compute the coordinate points of confidence ellipses or ellipsoids at a specified confidence level.
+    This module generates coordinate points for visualizing confidence regions in multivariate data. 
+    It supports both 2D confidence ellipses and 3D confidence ellipsoids at user-specified 
+    confidence levels, with options for normal distribution assumptions or Hotelling's T-squared 
+    distribution for small sample sizes.
     
     Parameters
     ----------
-    data : pd.DataFrame
-        Input data frame containing the variables.
-    x : str
-        Column name for the x-axis variable.
-    y : str
-        Column name for the y-axis variable.
-    z : str, optional
-        Column name for the z-axis variable (None by default).
+    *   `data` : Input data frame containing the variables.
+    
+    *   `x` : Column name for the x-axis variable.
+    
+    *   `y` : Column name for the y-axis variable.
+    
+    *   `z` : Column name for the z-axis variable (None by default).
         If provided, computes a 3D ellipsoid instead of a 2D ellipse.
-    group_by : str, optional
-        Column name for the grouping variable (None by default).
+    
+    *   `group_by` : Column name for the grouping variable (None by default).
         This grouping variable should be categorical.
-    conf_level : float, default=0.95
-        Confidence level for the ellipse/ellipsoid (between 0 and 1).
-    robust : bool, default=False
-        When True, uses robust estimation methods for location and scale.
-        Uses sklearn's EllipticEnvelope for robust covariance estimation.
-    distribution : {'normal', 'hotelling'}, default='normal'
-        Distribution used to calculate the quantile for the ellipse.
-        - 'normal': Uses chi-square distribution (appropriate for large samples)
-        - 'hotelling': Uses Hotelling's T² distribution (better for small samples)
+    
+    *   `conf_level` : Confidence level for the ellipse/ellipsoid (between 0 and 1).
+    
+    *   `robust` : When `True`, uses robust estimation methods for location and scale.
+        Uses sklearn's `EllipticEnvelope` for robust covariance estimation.
+    
+    *   `distribution` : Distribution used to calculate the quantile for the ellipse.
+        Options are:
+
+        - `'normal'`: Uses chi-square distribution (appropriate for large samples)
+        - `'hotelling'`: Uses Hotelling's T² distribution (better for small samples)
     
     Returns
     -------
-    pd.DataFrame
-        DataFrame containing the coordinate points:
+    DataFrame containing the coordinate points:
+
         - For 2D: columns 'x' and 'y'
         - For 3D: columns 'x', 'y', and 'z'
         If group_by is specified, includes the grouping column.
