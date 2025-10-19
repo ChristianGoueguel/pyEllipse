@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/ChristianGoueguel/pyEllipse"
 repository = "https://github.com/ChristianGoueguel/pyEllipse"
 Issues = "https://github.com/ChristianGoueguel/pyEllipse/issues"
-documentation = https://christiangoueguel.com/pyEllipse/pyEllipse.html
+documentation = "https://christiangoueguel.github.io/pyEllipse"
 keywords = ["statistics", "confidence-ellipse", "hotelling", "multivariate", "visualization"]
 classifiers = [
     "Development Status :: Stable",
