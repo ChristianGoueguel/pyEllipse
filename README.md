@@ -55,7 +55,6 @@ def load_wine_data():
             cultivar.append('Cultivar 2')
         else:
             cultivar.append('Cultivar 3')
-    
     wine_df['Cultivar'] = cultivar
     return wine_df
 ```
@@ -75,6 +74,7 @@ explained_var = pca.explained_variance_ratio_
 
 ```python
 plt.style.use('bmh')
+
 # Calculate T² statistics
 results = hotelling_parameters(pca_scores, k=2)
 t2 = results['Tsquared'].values
@@ -85,24 +85,18 @@ ellipse_99 = hotelling_coordinates(pca_scores, pcx=1, pcy=2, conf_limit=0.99)
 
 # Plot the PCA scores with Hotelling's T² ellipse
 plt.figure(figsize=(8, 6))
-scatter = plt.scatter(
-    pca_scores[:, 0], pca_scores[:, 1], 
-    c=t2, cmap='jet', alpha=0.85, s=70, label='Wine samples'
-    )
+scatter = plt.scatter(pca_scores[:, 0], pca_scores[:, 1], c=t2, cmap='jet', alpha=0.85, s=70, label='Wine samples')
 cbar = plt.colorbar(scatter)
 cbar.set_label('Hotelling T² Statistic', rotation=270, labelpad=20)
 
 plt.plot(ellipse_95['x'], ellipse_95['y'], 'r-', linewidth=1, label='95% Confidence level')
 plt.plot(ellipse_99['x'], ellipse_99['y'], 'k-', linewidth=1, label='99% Confidence level')
-plt.xlim(-1000, 1000)
-plt.ylim(-50, 60)
 plt.xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.title("Hotelling's T² Ellipse from PCA Scores", fontsize=16, pad=10, fontweight='bold')
-plt.legend(
-    loc='upper left', fontsize=10, frameon=True, framealpha=0.9, 
-    edgecolor='black', shadow=True, facecolor='white', borderpad=1
-    )
+plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
+plt.xlim(-1000, 1000)
+plt.ylim(-50, 60)
 plt.show()
 ```
 
@@ -113,7 +107,6 @@ plt.show()
 ```python
 wine_df['PC1'] = pca_scores[:, 0]
 wine_df['PC2'] = pca_scores[:, 1]
-
 colors = ['red', 'blue', 'green']
 cultivars = wine_df['Cultivar'].unique()
 color_map = {cultivar: color for cultivar, color in zip(cultivars, colors)}
@@ -124,10 +117,7 @@ plt.figure(figsize=(8, 6))
 
 for i, cultivar in enumerate(cultivars):
     mask = wine_df['Cultivar'] == cultivar
-    plt.scatter(
-        wine_df.loc[mask, 'PC1'], wine_df.loc[mask, 'PC2'], # type: ignore
-        c=colors[i], alpha=0.6, s=70, label=cultivar
-        ) 
+    plt.scatter(wine_df.loc[mask, 'PC1'], wine_df.loc[mask, 'PC2'], c=colors[i], alpha=0.6, s=70, label=cultivar) # type: ignore
 
 ellipse_coords = confidence_ellipse(
     data=wine_df,
@@ -141,20 +131,14 @@ ellipse_coords = confidence_ellipse(
 
 for i, cultivar in enumerate(cultivars):
     ellipse_data = ellipse_coords[ellipse_coords['Cultivar'] == cultivar]
-    plt.plot(
-        ellipse_data['x'], ellipse_data['y'], 
-        color=colors[i], linewidth=1, linestyle='-', label=f'{cultivar} (95% CI)'
-        )
+    plt.plot(ellipse_data['x'], ellipse_data['y'], color=colors[i], linewidth=1, linestyle='-', label=f'{cultivar} (95% CI)')
 
-plt.xlim(-1000, 1000)
-plt.ylim(-50, 60)
 plt.xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=14, labelpad=10, fontweight='bold')
 plt.title("PCA Scores with Cultivar Group Confidence Ellipses", fontsize=16, pad=10, fontweight='bold')
-plt.legend(
-    loc='upper left', fontsize=10, frameon=True, framealpha=0.9, 
-    edgecolor='black', shadow=True, facecolor='white', borderpad=1
-    )
+plt.legend(loc='upper left', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
+plt.xlim(-1000, 1000)
+plt.ylim(-50, 60)
 plt.show()
 ```
 
@@ -166,7 +150,6 @@ plt.show()
 wine_df['PC1'] = pca_scores[:, 0]
 wine_df['PC2'] = pca_scores[:, 1]
 wine_df['PC3'] = pca_scores[:, 2]
-
 colors = ['red', 'blue', 'green']
 light_colors = ['lightcoral', 'lightblue', 'lightgreen']
 cultivars = wine_df['Cultivar'].unique()
@@ -187,43 +170,19 @@ ax = fig.add_subplot(111, projection='3d', facecolor='white')
 
 for i, cultivar in enumerate(cultivars):
     mask = wine_df['Cultivar'] == cultivar
-    ax.scatter(
-        wine_df.loc[mask, 'PC1'], 
-        wine_df.loc[mask, 'PC2'], 
-        wine_df.loc[mask, 'PC3'], # type: ignore
-        c=colors[i], 
-        alpha=0.8, 
-        s=50, 
-        label=cultivar, 
-        edgecolors='black', 
-        linewidth=0.5
-        )
-     
+    ax.scatter(wine_df.loc[mask, 'PC1'], wine_df.loc[mask, 'PC2'], wine_df.loc[mask, 'PC3'], c=colors[i], alpha=0.8, s=50, label=cultivar, edgecolors='black', linewidth=0.5) # type: ignore
     ellipse_data = ellipse_coords[ellipse_coords['Cultivar'] == cultivar]
     n_points = int(np.sqrt(len(ellipse_data)))
-    
     x_2d = ellipse_data['x'].values.reshape(n_points, -1)
     y_2d = ellipse_data['y'].values.reshape(n_points, -1)
     z_2d = ellipse_data['z'].values.reshape(n_points, -1)
-    
-    ax.plot_surface(
-        x_2d, 
-        y_2d, 
-        z_2d, 
-        color=light_colors[i], 
-        alpha=0.4, 
-        linewidth=0, 
-        antialiased=True
-        )
+    ax.plot_surface(x_2d, y_2d, z_2d, color=light_colors[i], alpha=0.4, linewidth=0, antialiased=True)
 
 ax.set_xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=12, labelpad=5, fontweight='bold')
 ax.set_ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=12, labelpad=5, fontweight='bold')
 ax.set_zlabel(f'PC3 ({explained_var[2]*100:.2f}%)', fontsize=12, labelpad=1, fontweight='bold')
 ax.set_title('3D PCA Scores with 95% Confidence Ellipsoids', fontsize=16, fontweight='bold')
-ax.legend(
-    loc='upper right', fontsize=10, frameon=True, framealpha=0.9, 
-    edgecolor='black', shadow=True, facecolor='white', borderpad=1
-    )
+ax.legend(loc='upper right', fontsize=10, frameon=True, framealpha=0.9, edgecolor='black', shadow=True, facecolor='white', borderpad=1)
 ax.grid(True, alpha=0.3, color='gray')
 ax.view_init(elev=20, azim=65)
 plt.tight_layout()
