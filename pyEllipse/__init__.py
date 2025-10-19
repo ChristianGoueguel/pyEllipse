@@ -29,4 +29,4 @@ __author__ = "Christian L. Goueguel"
 __maintainer__ = "Christian L. Goueguel"
 __credits__ = ["Christian L. Goueguel"] 
 __email__ = "christian.goueguel@gmail.com"
-__status__ = "Production/Stable"
+__status__ = "Stable"
