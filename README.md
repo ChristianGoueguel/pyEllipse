@@ -2,16 +2,6 @@
 
 A Python library for computing Hotelling's T² statistics and generating confidence ellipse/ellipsoid coordinates for multivariate data analysis and visualization.
 
-[![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
-[![Python Versions](https://img.shields.io/pypi/pyversions/pyellipse.svg)](https://pypi.org/project/pyellipse/)
-[![License](https://img.shields.io/github/license/ChristianGoueguel/pyEllipse.svg)](https://github.com/ChristianGoueguel/pyEllipse/blob/main/LICENSE)
-![PyPI - Downloads](https://img.shields.io/pypi/dd/pyEllipse)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/pyEllipse)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pyEllipse)
-![PyPI - Format](https://img.shields.io/pypi/format/pyEllipse)
-![PyPI - Status](https://img.shields.io/pypi/status/pyEllipse)
-![PyPI - Implementation](https://img.shields.io/pypi/implementation/pyEllipse)
-
 ## Overview
 
 `pyEllipse` provides three main functions for analyzing multivariate data:
