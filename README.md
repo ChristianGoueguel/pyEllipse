@@ -226,6 +226,23 @@ plt.show()
 - You want robust estimation for outlier-resistant analysis
 - You need flexibility in distribution choice (normal vs Hotelling)
 
+## Citation
+
+If you use `pyEllipse` in your research, please cite it:
+
+```bibtex
+@software{goueguel_pyellipse,
+  author  = {Goueguel, Christian L.},
+  title   = {{pyEllipse: Statistical confidence ellipses and Hotelling's T-squared ellipses}},
+  year    = {2026},
+  version = {0.1.4},
+  url     = {https://github.com/ChristianGoueguel/pyEllipse},
+  license = {MIT}
+}
+```
+
+A machine-readable [CITATION.cff](CITATION.cff) is also included, so GitHub's "Cite this repository" button stays in sync.
+
 ## References
 
 1. Hotelling, H. (1931). The generalization of Student's ratio. *Annals of Mathematical Statistics*, 2(3), 360-378.
