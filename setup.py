@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="pyEllipse",
-    version="0.1.5",
+    version="0.2.0",
     author="Christian L. Goueguel",
     author_email="christian.goueguel@gmail.com",
     description=(

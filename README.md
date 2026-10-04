@@ -102,6 +102,16 @@ plt.show()
 
 ![Hotelling Ellipse](https://raw.githubusercontent.com/ChristianGoueguel/pyEllipse/main/images/example1_hotelling_ellipse.png)
 
+The `Tsquared` values are on the same scale as the cutoffs, so a sample lies outside the ellipse exactly when its T² exceeds the corresponding cutoff. To flag outliers on more components, set `k`. Use `conf_limit` to choose the confidence levels and `method='beta'` for the exact limits of the samples the model was fitted on; the default `method='f'` is more conservative for small samples.
+
+```python
+results = hotelling_parameters(pca_scores, k=4, method='beta', conf_limit=(0.95, 0.99))
+t2 = results['Tsquared']['value']
+outliers = t2[t2 > results['cutoff_99pct']]
+```
+
+When the components are correlated, e.g. new samples projected onto a model, the ellipse is rotated; its rotation is returned in `results['Ellipse']['angle']` (0 for PCA scores).
+
 ### Example 2: Grouped Confidence Ellipses
 
 ```python
@@ -235,7 +245,7 @@ If you use `pyEllipse` in your research, please cite it:
   author  = {Goueguel, Christian L.},
   title   = {{pyEllipse: Statistical confidence ellipses and Hotelling's T-squared ellipses}},
   year    = {2026},
-  version = {0.1.5},
+  version = {0.2.0},
   url     = {https://github.com/ChristianGoueguel/pyEllipse},
   license = {MIT}
 }
