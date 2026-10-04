@@ -16,15 +16,13 @@ how.
 #| code-summary: "Setup"
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from matplotlib.patches import Arc
 from scipy import stats
 
 from pyEllipse import hotelling_coordinates, hotelling_parameters
-
-plt.style.use("_pyellipse.mplstyle")
-BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
-INK, MUTED = "#373a3c", "#6c757d"
 ```
+
+{{< include _figure-style.qmd >}}
 
 ## Notation
 
@@ -172,18 +170,21 @@ beta_lim = (n - 1) ** 2 / n * stats.beta.ppf(level, k / 2, (n - k - 1) / 2)
 new_lim = (n + 1) / n * f_lim
 chi2_lim = stats.chi2.ppf(level, k)
 
-fig, ax = plt.subplots()
-ax.plot(n, new_lim, color=AQUA, label="New observation (exact)")
+fig, ax = plt.subplots(figsize=(ONE_HALF, 75 * MM))
+ax.plot(n, new_lim, color=AQUA, ls="-.", label="New observation (exact)")
 ax.plot(n, f_lim, color=BLUE, label="F limit, method='f'")
-ax.plot(n, beta_lim, color=ORANGE, label="Beta limit, method='beta' (exact in-sample)")
-ax.axhline(chi2_lim, color=MUTED, lw=1, label="χ²(2) quantile, large-sample limit")
-ax.plot(n, (n - 1) ** 2 / n, color=MUTED, lw=1, ls=":", label="Largest in-sample T², (n − 1)²/n")
+ax.plot(n, beta_lim, color=ORANGE, ls="--", label="Beta limit, method='beta' (exact in-sample)")
+ax.axhline(chi2_lim, color=GREY, lw=0.8, label=r"$\chi^2_{0.95}(2)$, limit as $n \to \infty$")
+ax.plot(n, (n - 1) ** 2 / n, color=GREY, lw=0.8, ls=":",
+        label=r"Largest in-sample $T^2$, $(n-1)^2/n$")
 ax.set_xscale("log")
 ax.set_xticks([6, 10, 20, 50, 100, 200], labels=["6", "10", "20", "50", "100", "200"])
 ax.minorticks_off()
+ax.set_xlim(6, 200)
 ax.set_ylim(0, 20)
-ax.set_xlabel("Number of observations, n")
-ax.set_ylabel("95% limit of T²")
+ax.set_yticks(range(0, 21, 5))
+ax.set_xlabel(r"Number of observations, $n$")
+ax.set_ylabel(r"95% limit of $T^2$")
 ax.legend(loc="upper right")
 plt.show()
 ```
@@ -307,9 +308,9 @@ parametrization $\bar{\mathbf{x}} + \sqrt{c}\,(s_x\cos\theta,\, s_y\sin\theta)^\
 #| label: fig-ellipse
 #| fig-cap: >-
 #|   95% Hotelling's ellipse of two correlated components (Beta limit), drawn with
-#|   hotelling_coordinates, and its semi-axes a and b from hotelling_parameters. The
-#|   points outside the ellipse are exactly those whose T-squared value exceeds the
-#|   cutoff.
+#|   hotelling_coordinates, with its semi-axes a and b and rotation angle φ from
+#|   hotelling_parameters. The points outside the ellipse (triangles) are exactly those
+#|   whose T-squared value exceeds the cutoff c.
 rng = np.random.default_rng(7)
 z = rng.standard_normal((60, 2))
 scores = z @ np.array([[2.0, 0.0], [1.2, 0.8]])  # correlated components
@@ -322,19 +323,28 @@ centre = scores.mean(axis=0)
 axis_a = np.array([np.cos(angle), np.sin(angle)])
 axis_b = np.array([-np.sin(angle), np.cos(angle)])
 
-fig, ax = plt.subplots(figsize=(6, 5))
-ax.plot(ellipse["x"], ellipse["y"], color=INK, lw=1.5)
-for axis, length, name in [(axis_a, a, "a"), (axis_b, b, "b")]:
+fig, ax = plt.subplots(figsize=(ONE_HALF, 56 * MM))
+ax.plot(ellipse["x"], ellipse["y"], color="black", lw=1)
+# Semi-axes a and b
+for axis, length, name in [(axis_a, a, "$a$"), (axis_b, b, "$b$")]:
     end = centre + length * axis
-    ax.plot(*np.column_stack([centre, end]), color=MUTED, lw=1)
-    ax.annotate(name, end, xytext=(4, 4), textcoords="offset points", color=INK)
-ax.scatter(*scores[~outside].T, s=40, color=BLUE, edgecolor="white", linewidth=1,
-           label="T² ≤ cutoff", zorder=3)
-ax.scatter(*scores[outside].T, s=40, color=ORANGE, edgecolor="white", linewidth=1,
-           label="T² > cutoff", zorder=3)
-ax.set_aspect("equal")
-ax.set_xlabel("Component x")
-ax.set_ylabel("Component y")
+    ax.plot(*np.column_stack([centre, end]), color=GREY, lw=0.8)
+    ax.annotate(name, end, xytext=(3, 3), textcoords="offset points")
+# Rotation angle, from the x direction to the semi-axis a
+radius = 0.45 * a
+theta1, theta2 = sorted([0, np.degrees(angle)])
+ax.plot([centre[0], centre[0] + 1.3 * radius], [centre[1]] * 2, color=GREY, lw=0.8, ls=":")
+ax.add_patch(Arc(centre, 2 * radius, 2 * radius, theta1=theta1, theta2=theta2,
+                 color=GREY, lw=0.8))
+ax.annotate(r"$\varphi$", centre + radius * np.array([np.cos(angle / 2), np.sin(angle / 2)]),
+            xytext=(3, 0), textcoords="offset points", va="center")
+ax.scatter(*scores[~outside].T, s=14, marker="o", color=BLUE, edgecolor="white",
+           linewidth=0.4, label=r"$T^2 \leq c$", zorder=3)
+ax.scatter(*scores[outside].T, s=22, marker="^", color=ORANGE, edgecolor="white",
+           linewidth=0.4, label=r"$T^2 > c$", zorder=3)
+ax.set_aspect("equal", adjustable="datalim")
+ax.set_xlabel("Component 1")
+ax.set_ylabel("Component 2")
 ax.legend(loc="upper left")
 plt.show()
 

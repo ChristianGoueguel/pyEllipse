@@ -3,11 +3,13 @@ title: "Outlier detection with PCA scores"
 description: >-
   Score plot with Hotelling's ellipses, T-squared control chart, and the contribution of
   each component to the flagged samples.
+code-fold: show
 ---
 
 This example fits a PCA model to the wine data and looks for unusual samples among the
 samples the model was fitted on. All the numbers in the text are computed when this
-page is built.
+page is built, and the figures are ready for publication (see
+[Saving the figures](#saving-the-figures)).
 
 ## Data and PCA model
 
@@ -17,7 +19,6 @@ standardized, since they have different units, and all principal components are 
 ```{python}
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.datasets import load_wine
 from sklearn.decomposition import PCA
@@ -36,18 +37,16 @@ pd.DataFrame(
 ).head(6).style.format("{:.1%}")
 ```
 
-```{python}
-#| include: false
-plt.style.use("../_pyellipse.mplstyle")
-BLUE, ORANGE, INK, MUTED = "#2a78d6", "#eb6834", "#373a3c", "#6c757d"
-# Sequential blue ramp, light to dark (validated for ordered steps on white)
-T2_CMAP = LinearSegmentedColormap.from_list(
-    "t2", ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]
-)
-```
-
 The scores are the samples the model was fitted on, so the exact limit of T-squared for
 them is the Beta limit, `method="beta"` (see [Control limits](../theory.qmd#sec-limits)).
+
+## Figure style
+
+The figures are sized for journal columns (89, 140 or 183 mm wide), with 8–9 pt text at
+the printed size, colours that remain distinct with colour-vision deficiencies, and line
+styles or marker shapes that keep them readable in grayscale.
+
+{{< include ../_figure-style.qmd >}}
 
 ## Score plot with Hotelling's ellipses
 
@@ -68,18 +67,24 @@ res_2["Ellipse"].round(3)
 #| label: fig-scores
 #| fig-cap: >-
 #|   Scores on the first two principal components, coloured by their T-squared value on
-#|   these components, with the 95% and 99% Hotelling's ellipses (Beta limits).
+#|   these components, with the 95% (dashed) and 99% (solid) Hotelling's ellipses (Beta
+#|   limits).
 #| code-fold: true
-fig, ax = plt.subplots(figsize=(7, 5))
-for ellipse, label, width in [(ellipse_95, "95%", 1), (ellipse_99, "99%", 1.5)]:
-    ax.plot(ellipse["x"], ellipse["y"], color=INK, lw=width)
+# Sequential colour map, light to dark, for the magnitude of T-squared
+t2_cmap = LinearSegmentedColormap.from_list(
+    "t2", ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]
+)
+
+fig, ax = plt.subplots(figsize=(ONE_HALF, 94 * MM))
+points = ax.scatter(scores[:, 0], scores[:, 1], c=t2_2, cmap=t2_cmap, s=12,
+                    edgecolor="white", linewidth=0.3, zorder=3)
+for ellipse, label, style in [(ellipse_95, "95%", "--"), (ellipse_99, "99%", "-")]:
+    ax.plot(ellipse["x"], ellipse["y"], color="black", lw=0.9, ls=style)
     top = ellipse["y"].idxmax()
-    ax.annotate(label, (ellipse["x"][top], ellipse["y"][top]), xytext=(0, 4),
-                textcoords="offset points", ha="center", color=INK)
-points = ax.scatter(scores[:, 0], scores[:, 1], c=t2_2, cmap=T2_CMAP, s=36,
-                    edgecolor="white", linewidth=0.8, zorder=3)
-fig.colorbar(points, ax=ax, label="T² on PC1 and PC2", shrink=0.8)
-ax.set_aspect("equal")
+    ax.annotate(label, (ellipse["x"][top], ellipse["y"][top]), xytext=(0, 2),
+                textcoords="offset points", ha="center", va="bottom")
+fig.colorbar(points, ax=ax, label=r"$T^2$ (PC1 and PC2)", shrink=0.75, aspect=25)
+ax.set_aspect("equal", adjustable="datalim")
 ax.set_xlabel(f"PC1 ({explained[0]:.1%})")
 ax.set_ylabel(f"PC2 ({explained[1]:.1%})")
 plt.show()
@@ -108,27 +113,29 @@ print("Rows above the 99% limit:", flagged.tolist())
 #| label: fig-control-chart
 #| fig-cap: >-
 #|   T-squared of each sample on the components that explain 80% of the variance, with
-#|   the 95% and 99% Beta limits. The samples above the 99% limit are labelled with their row number.
+#|   the 95% (dashed) and 99% (solid) Beta limits. The samples above the 99% limit
+#|   (triangles) are labelled with their row number.
 #| code-fold: true
 rows = np.arange(len(t2))
 above = t2.to_numpy() > res["cutoff_99pct"]
-fig, ax = plt.subplots(figsize=(8, 4))
-for level, width in [("95", 1), ("99", 1.5)]:
+
+fig, ax = plt.subplots(figsize=(DOUBLE, 70 * MM))
+for level, style in [("95", "--"), ("99", "-")]:
     cutoff = res[f"cutoff_{level}pct"]
-    ax.axhline(cutoff, color=INK if level == "99" else MUTED, lw=width)
+    ax.axhline(cutoff, color="black", lw=0.8, ls=style)
     ax.annotate(f"{level}% limit", (1, cutoff), xycoords=("axes fraction", "data"),
-                xytext=(0, 3), textcoords="offset points", ha="right", va="bottom",
-                color=INK)
-ax.scatter(rows[~above], t2[~above], s=24, color=BLUE, edgecolor="white", linewidth=0.8,
-           label="Below the 99% limit", zorder=3)
-ax.scatter(rows[above], t2[above], s=36, color=ORANGE, edgecolor="white", linewidth=0.8,
-           label="Above the 99% limit", zorder=3)
+                xytext=(0, 2), textcoords="offset points", ha="right", va="bottom")
+ax.scatter(rows[~above], t2[~above], s=10, marker="o", color=BLUE, edgecolor="white",
+           linewidth=0.3, label="Below the 99% limit", zorder=3)
+ax.scatter(rows[above], t2[above], s=20, marker="^", color=ORANGE, edgecolor="white",
+           linewidth=0.3, label="Above the 99% limit", zorder=3)
 for row in rows[above]:
-    ax.annotate(str(row), (row, t2[row]), xytext=(0, 6), textcoords="offset points",
-                ha="center", fontsize=9, color=INK)
+    ax.annotate(str(row), (row, t2[row]), xytext=(0, 4), textcoords="offset points",
+                ha="center", fontsize=7)
 ax.set_xlim(-2, len(t2) + 1)
+ax.set_ylim(0, 1.12 * t2.max())
 ax.set_xlabel("Sample (row number)")
-ax.set_ylabel(f"T² on {k} components")
+ax.set_ylabel(f"$T^2$ ({k} components)")
 ax.legend(loc="upper left")
 plt.show()
 ```
@@ -179,3 +186,15 @@ pd.DataFrame(summary).style.hide(axis="index").format({"Limit": "{:.2f}"})
 With `{python} len(t2)` samples, the two limits are close; for small data sets, the
 difference is much larger (see the [figure of the limits](../theory.qmd#fig-limits) on
 the Theory page).
+
+## Saving the figures
+
+With the [figure style](#figure-style) above, figures keep the size set with `figsize`
+when saved, and their fonts are embedded as TrueType, as journals require. Save each
+figure in the format your journal asks for:
+
+```python
+fig.savefig("score-plot.pdf")             # vector, accepted by most journals
+fig.savefig("score-plot.eps")             # vector, for journals that require EPS
+fig.savefig("score-plot.tiff", dpi=600)   # raster, for journals that require TIFF
+```
