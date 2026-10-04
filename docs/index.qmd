@@ -1,0 +1,92 @@
+---
+title: "pyEllipse"
+subtitle: "Hotelling's T-squared statistic and confidence ellipses for multivariate data"
+---
+
+pyEllipse computes Hotelling's T-squared statistic, its control limits, and the
+confidence ellipses and ellipsoids drawn from them, for outlier detection and score
+plots of PCA, PLS and other multivariate models. Its Hotelling functions are the Python
+counterpart of the [HotellingEllipse](https://github.com/ChristianGoueguel/HotellingEllipse)
+R package and give the same results (see [Validation](#validation)).
+
+| Function | Purpose |
+|-------------------------|---------------------------------------------------------|
+| [`hotelling_parameters`](reference/hotelling_parameters.qmd) | T-squared of each observation, cutoffs, and the semi-axes and rotation of the ellipse |
+| [`hotelling_coordinates`](reference/hotelling_coordinates.qmd) | Points of the T-squared ellipse (2D) or ellipsoid (3D), for plotting |
+| [`confidence_ellipse`](reference/confidence_ellipse.qmd) | Confidence ellipses and ellipsoids of raw data, optionally by group and with robust estimates |
+
+The [Theory](theory.qmd) page gives the formulas behind each function and states when
+each limit is exact.
+
+## Installation
+
+```bash
+pip install pyEllipse
+```
+
+## Quick start
+
+Compute T-squared on the first two principal components of the wine data, and flag the
+samples above the 99% limit:
+
+```{python}
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+from pyEllipse import hotelling_coordinates, hotelling_parameters
+
+X = StandardScaler().fit_transform(load_wine().data)
+scores = PCA().fit_transform(X)
+
+res = hotelling_parameters(scores, pcx=1, pcy=2, method="beta")
+t2 = res["Tsquared"]["value"]
+print(f"99% limit: {res['cutoff_99pct']:.2f}")
+print("Samples above it:", np.flatnonzero(t2 > res["cutoff_99pct"]).tolist())
+```
+
+`hotelling_coordinates(scores, pcx=1, pcy=2, conf_limit=0.99, method="beta")` returns the
+points of the matching ellipse, for plotting. The
+[PCA example](examples/pca-outliers.qmd) goes through a complete analysis.
+
+::: {.callout-important}
+## T-squared values changed in version 0.2.0
+
+Up to version 0.1.5, `hotelling_parameters` returned T-squared scaled by
+$(n-k)/(k(n-1))$, while the cutoffs were not, so comparing the two missed outliers.
+From version 0.2.0, `Tsquared` is on the same scale as the cutoffs. See the
+[changelog](https://github.com/ChristianGoueguel/pyEllipse/blob/main/CHANGELOG.md).
+:::
+
+## Validation {#validation}
+
+The [test suite](https://github.com/ChristianGoueguel/pyEllipse/tree/main/tests) runs on
+every change, on Python 3.9 to 3.14. For `hotelling_parameters` and
+`hotelling_coordinates`, it checks the formulas of the [Theory](theory.qmd) page
+directly (T-squared against the squared Mahalanobis distance, the ellipse points against
+the limit, the semi-axes and rotation against the ellipse points), checks that about 5%
+of simulated observations exceed the 95% Beta limit, and compares both functions with
+the HotellingEllipse 1.3.0 R package on a reference data set, to within a relative
+$10^{-10}$. The examples in the [reference](reference/index.qmd) pages are run as tests
+too; for `confidence_ellipse`, this example is so far the only test.
+
+## How to cite
+
+```{python}
+#| echo: false
+#| output: asis
+import pyEllipse
+
+print(f"""```bibtex
+@software{{goueguel_pyellipse,
+  author  = {{Goueguel, Christian L.}},
+  title   = {{{{pyEllipse: Statistical confidence ellipses and Hotelling's T-squared ellipses}}}},
+  version = {{{pyEllipse.__version__}}},
+  url     = {{https://github.com/ChristianGoueguel/pyEllipse}},
+  license = {{MIT}}
+}}
+```""")
+```
+
+Please cite the version you used, as shown in the footer of this page.

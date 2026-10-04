@@ -1,0 +1,26 @@
+/* Navbar links, as on christiangoueguel.com */
+.navbar .nav-link {
+  font-weight: 600;
+}
+
+/* Reference pages: keep long parameter descriptions readable */
+.doc-section dl dd {
+  margin-left: 1.5rem;
+}
+
+/* Wide display equations scroll on narrow screens instead of being clipped */
+mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+/* Function names in tables are not broken across lines */
+.table td code {
+  white-space: nowrap;
+}
+
+/* Tables produced by code cells */
+.cell-output-display table {
+  font-variant-numeric: tabular-nums;
+}

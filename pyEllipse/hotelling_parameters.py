@@ -28,77 +28,119 @@ def hotelling_parameters(
     method: Literal["f", "beta"] = "f",
     conf_limit: Union[float, Sequence[float]] = (0.95, 0.99)
 ) -> Dict:
-    """
-    This module provides functions to calculate Hotelling's T-squared statistics
-    for multivariate data and to derive parameters for confidence ellipses based
-    on Hotelling's T-squared distribution.
+    r"""
+    Hotelling's T-squared statistic and Hotelling's ellipse parameters.
+
+    Computes Hotelling's T-squared statistic of each observation, its cutoffs at one or
+    more confidence levels and, when two components are used, the semi-axes and rotation
+    of the corresponding Hotelling's ellipse. The number of components is either fixed
+    (`k`) or chosen from a cumulative explained variance `threshold`.
 
     Parameters
     ----------
-    *   `x` : Input matrix or data frame containing scores from PCA, PLS, ICA, or similar methods. Each column represents a component, and each row an observation.
-
-    *   `k` : Number of components to use (default=2). Ignored if threshold is provided.
-
-    *   `pcx` : Component to use for x-axis when `k=2` (default=1).
-
-    *   `pcy` : Component to use for y-axis when `k=2` (default=2). Must be different from `pcx`.
-
-    *   `threshold` : Cumulative explained variance threshold (0 to 1). If provided,
-        determines minimum number of components to explain at least this
-        proportion of total variance.
-
-    *   `rel_tol` : Minimum proportion of total variance a component should explain
-        to be considered non-negligible (0.1% by default).
-
-    *   `abs_tol` : Minimum absolute variance a component should have to be
-        considered non-negligible (default=`sys.float_info.epsilon`).
-
-    *   `method` : How the T-squared cutoffs are computed: `'f'` (default) or `'beta'`.
-        See Notes.
-
-    *   `conf_limit` : Confidence level, or sequence of confidence levels, each strictly
-        between 0 and 1, at which the T-squared cutoffs and ellipse semi-axes are
-        computed (default=`(0.95, 0.99)`). See Returns for how the results are named.
+    x : numpy.ndarray or pandas.DataFrame
+        Scores from PCA, PLS, ICA, or similar methods, with one row per observation and
+        one column per component.
+    k : int, default 2
+        Number of components to use. Ignored when `threshold` is given.
+    pcx : int, default 1
+        Component (1-based) on the x-axis of the ellipse when `k=2`.
+    pcy : int, default 2
+        Component (1-based) on the y-axis of the ellipse when `k=2`. Must differ from
+        `pcx`.
+    threshold : float, optional
+        Cumulative explained variance threshold, in (0, 1]. When given, the smallest
+        number of leading components that explain at least this proportion of the total
+        variance is used (at least two).
+    rel_tol : float, default 0.001
+        Minimum proportion of the total variance a component must explain to be kept.
+    abs_tol : float, default sys.float_info.epsilon
+        Minimum variance a component must have to be kept. Must not exceed `rel_tol`.
+    method : str, default 'f'
+        Distribution of the T-squared cutoffs, `'f'` or `'beta'`. See Notes.
+    conf_limit : float or sequence of float, default (0.95, 0.99)
+        Confidence level, or levels, of the cutoffs and semi-axes, each strictly between
+        0 and 1.
 
     Returns
     -------
-    Dictionary containing:
+    dict
+        T-squared values, cutoffs, number of components and, when `k=2`, ellipse
+        parameters, under the keys listed in Returned keys.
 
-        - 'Tsquared': DataFrame with the T-squared statistic for each observation (the
-          squared Mahalanobis distance), on the same scale as the cutoffs. When `k=2`,
-          it is computed on components `pcx` and `pcy`.
-        - 'cutoff_<level>pct': T-squared cutoff at each confidence level in `conf_limit`,
-          from the highest to the lowest level. With the default `conf_limit`, these are
-          'cutoff_99pct' and 'cutoff_95pct'; with `conf_limit=(0.975, 0.999)`, they are
-          'cutoff_99.9pct' and 'cutoff_97.5pct'.
-        - 'nb_comp': Number of components retained
-        - 'Ellipse': DataFrame (only when `k=2`) with the semi-axes lengths at each
-          confidence level ('a_<level>pct', 'b_<level>pct', e.g. 'a_99pct', 'b_99pct',
-          'a_95pct', 'b_95pct' by default) and the rotation 'angle' of the ellipse in
-          radians. 'a' is the semi-axis closest to the `pcx` direction. For uncorrelated
-          scores, such as the PCA or PLS scores of the samples the model was fitted on,
-          'angle' is 0.
+    Returned keys
+    -------------
+    - `'Tsquared'`: DataFrame with a column `'value'`, the T-squared statistic of each
+      observation (its squared Mahalanobis distance), on the same scale as the cutoffs.
+      When `k=2`, it is computed on components `pcx` and `pcy`.
+    - `'cutoff_<level>pct'`: T-squared cutoff at each level of `conf_limit`, from the
+      highest to the lowest level: `'cutoff_99pct'` and `'cutoff_95pct'` by default,
+      `'cutoff_99.9pct'` for a level of 0.999.
+    - `'nb_comp'`: number of components used.
+    - `'Ellipse'` (only when `k=2`): one-row DataFrame with the semi-axes
+      `'a_<level>pct'` and `'b_<level>pct'` at each level, and the rotation `'angle'` of
+      the ellipse in radians. `a` is the semi-axis closest to the `pcx` direction.
+      `'angle'` is 0 for uncorrelated scores, such as the PCA or PLS scores of the
+      samples a model was fitted on.
+
+    Raises
+    ------
+    TypeError
+        If `x` is not a NumPy array or a pandas DataFrame.
+    ValueError
+        If an argument is invalid, if there are fewer than `k + 2` observations, or if
+        fewer than two components remain after removing near-zero variance components.
+    RuntimeError
+        If the covariance matrix of the selected components is singular.
+
+    Warnings
+    --------
+    A `UserWarning` is issued when near-zero variance components are removed, or when
+    `threshold` is lower than the variance explained by the first component (two
+    components are then used).
 
     Notes
     -----
-    With `method='f'` (default), the cutoffs are k(n - 1)/(n - k) F(k, n - k), as in
-    previous versions of the package. With `method='beta'`, the cutoffs follow the exact
-    distribution of T-squared for the observations used to estimate the mean and
-    covariance, (n - 1)^2/n Beta(k/2, (n - k - 1)/2) (Tracy, Young and Mason, 1992),
-    e.g. the scores of the samples a PCA or PLS model was built on. The F-based limit is
-    more conservative, especially for small `n`: it can even exceed the largest T-squared
-    value any observation can reach, (n - 1)^2/n. For `n` larger than about 100, the two
-    limits are close.
+    For observation $i$ with scores $\mathbf{x}_i$ on the $k$ selected components,
+    $T^2_i = (\mathbf{x}_i - \bar{\mathbf{x}})^\top \mathbf{S}^{-1}
+    (\mathbf{x}_i - \bar{\mathbf{x}})$, where $\bar{\mathbf{x}}$ and $\mathbf{S}$ are the
+    sample mean and covariance matrix of the $n$ observations.
 
-    When the selected components are correlated (e.g. new samples projected onto a model,
-    or ICA scores), the ellipse is rotated so that it matches the T-squared statistic: an
-    observation lies outside the ellipse exactly when its T-squared value exceeds the
-    cutoff.
+    With `method='f'` (default), the cutoff at confidence level $1 - \alpha$ is
+    $\frac{k(n-1)}{n-k} F_{1-\alpha}(k, n-k)$, as in previous versions of the package.
+    With `method='beta'`, it is $\frac{(n-1)^2}{n} B_{1-\alpha}(k/2, (n-k-1)/2)$, the
+    exact distribution of $T^2_i$ for the observations used to estimate the mean and
+    covariance (Tracy, Young and Mason, 1992), e.g. the scores of the samples a PCA or
+    PLS model was built on. For these observations, the F-based cutoff is conservative,
+    especially for small $n$.
+
+    The ellipse is the set of points whose T-squared value equals the cutoff, so an
+    observation lies outside it exactly when its T-squared value exceeds the cutoff.
+    Derivations are given on the Theory page of the documentation,
+    <https://christiangoueguel.com/pyEllipse/theory.html>.
 
     References
     ----------
     Tracy, N. D., Young, J. C. and Mason, R. L. (1992). Multivariate control charts for
     individual observations. *Journal of Quality Technology*, 24(2), 88-95.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyEllipse import hotelling_parameters
+    >>> scores = np.random.default_rng(0).standard_normal((50, 3)) * [3.0, 2.0, 1.0]
+    >>> res = hotelling_parameters(scores, k=2)
+    >>> list(res)
+    ['Tsquared', 'cutoff_99pct', 'cutoff_95pct', 'nb_comp', 'Ellipse']
+    >>> round(res['cutoff_95pct'], 3)
+    6.514
+    >>> outliers = res['Tsquared']['value'] > res['cutoff_95pct']
+
+    Exact cutoffs for the calibration samples, at custom confidence levels:
+
+    >>> res = hotelling_parameters(scores, k=3, method='beta', conf_limit=(0.975, 0.999))
+    >>> [key for key in res if key.startswith('cutoff')]
+    ['cutoff_99.9pct', 'cutoff_97.5pct']
     """
     if x is None:
         raise ValueError("Missing input data.")

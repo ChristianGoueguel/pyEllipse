@@ -1,0 +1,74 @@
+project:
+  type: website
+  output-dir: _site
+  # Writes _variables.yml (version, commit) and generates the API reference
+  pre-render: _scripts/pre_render.py
+
+website:
+  title: "pyEllipse"
+  site-url: https://christiangoueguel.com/pyEllipse
+  repo-url: https://github.com/ChristianGoueguel/pyEllipse
+  repo-subdir: docs
+  repo-actions: [source, issue]
+  page-navigation: true
+  navbar:
+    background: "#2c2c2c"
+    foreground: "#ffffff"
+    left:
+      - text: Get started
+        href: index.qmd
+      - text: Theory
+        href: theory.qmd
+      - text: Examples
+        menu:
+          - text: Outlier detection with PCA scores
+            href: examples/pca-outliers.qmd
+      - text: Reference
+        href: reference/index.qmd
+    right:
+      - icon: github
+        href: https://github.com/ChristianGoueguel/pyEllipse
+        aria-label: GitHub repository
+  page-footer:
+    left: >-
+      pyEllipse {{< var version >}}, built from commit
+      [{{< var commit >}}]({{< var commit_url >}})
+    right: >-
+      © Christian L. Goueguel · MIT License
+
+quartodoc:
+  package: pyEllipse
+  title: Reference
+  dir: reference
+  parser: numpy
+  renderer:
+    style: markdown
+    display_name: name
+    table_style: description-list
+    show_signature_annotations: true
+  options:
+    signature_name: short
+    # Resolve the public names imported in pyEllipse/__init__.py, which shadow the
+    # submodules of the same name
+    dynamic: true
+  sections:
+    - title: Hotelling's T-squared
+      desc: T-squared statistic, cutoffs and ellipses for component scores (PCA, PLS, ICA).
+      contents:
+        - hotelling_parameters
+        - hotelling_coordinates
+    - title: Confidence ellipses
+      desc: Confidence ellipses and ellipsoids of raw data, optionally by group.
+      contents:
+        - confidence_ellipse
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+    fig-format: svg
