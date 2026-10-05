@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## pyEllipse 0.2.1
 
 ### Bug fixes
 

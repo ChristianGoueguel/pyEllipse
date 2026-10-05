@@ -254,7 +254,7 @@ If you use `pyEllipse` in your research, please cite it:
   author  = {Goueguel, Christian L.},
   title   = {{pyEllipse: Statistical confidence ellipses and Hotelling's T-squared ellipses}},
   year    = {2026},
-  version = {0.2.0},
+  version = {0.2.1},
   url     = {https://github.com/ChristianGoueguel/pyEllipse},
   license = {MIT}
 }
