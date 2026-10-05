@@ -402,6 +402,70 @@ in two ways.
   @eq-limit-f, where $n$ is the number of observations of the group; it is larger than
   the chi-square quantile, and the difference matters for small groups.
 
+```{python}
+#| label: fig-confidence-n
+#| fig-cap: >-
+#|   95% confidence ellipses of (a) a small and (b) a large sample from the same
+#|   bivariate normal distribution, computed by confidence_ellipse with
+#|   distribution='normal' (solid) and distribution='hotelling' (dashed).
+from matplotlib.lines import Line2D
+from pyEllipse import confidence_ellipse
+
+population_cov = np.array([[1.0, 0.8], [0.8, 1.5]])
+sizes_ce = [10, 500]
+rng = np.random.default_rng(11)
+samples = [
+    pd.DataFrame(rng.multivariate_normal([0, 0], population_cov, size=size), columns=["x", "y"])
+    for size in sizes_ce
+]
+regions = [
+    {dist: confidence_ellipse(sample, x="x", y="y", conf_level=0.95, distribution=dist)
+     for dist in ["normal", "hotelling"]}
+    for sample in samples
+]
+c_normal = stats.chi2.ppf(0.95, 2)
+area_ratio = [2 * (size - 1) / (size - 2) * stats.f.ppf(0.95, 2, size - 2) / c_normal
+              for size in sizes_ce]
+
+# Same axis limits for both panels
+extent = 1.05 * max(np.abs(np.concatenate([r[d][["x", "y"]].to_numpy().ravel()
+                                           for r in regions for d in r])).max(),
+                    np.abs(np.concatenate([s.to_numpy().ravel() for s in samples])).max())
+
+fig, axes = plt.subplots(1, 2, figsize=(DOUBLE, 95 * MM))
+for ax, label, size, sample, region in zip(axes, "ab", sizes_ce, samples, regions):
+    ax.scatter(sample["x"], sample["y"], s=14 if size < 50 else 3, color="#a6a6a6",
+               linewidth=0, zorder=2)
+    ax.plot(region["normal"]["x"], region["normal"]["y"], color=BLUE, lw=1.2, zorder=3)
+    ax.plot(region["hotelling"]["x"], region["hotelling"]["y"], color=ORANGE, lw=1.2,
+            ls="--", zorder=3)
+    ax.set_xlim(-extent, extent)
+    ax.set_ylim(-extent, extent)
+    ax.set_aspect("equal", adjustable="datalim")
+    ax.text(0.03, 0.97, f"({label})  $n$ = {size}", transform=ax.transAxes,
+            ha="left", va="top")
+    ax.set_xlabel("$x$")
+axes[0].set_ylabel("$y$")
+fig.legend(
+    handles=[
+        Line2D([], [], color="#a6a6a6", marker="o", ls="", markersize=4, label="Observations"),
+        Line2D([], [], color=BLUE, lw=1.2, label="distribution='normal'"),
+        Line2D([], [], color=ORANGE, lw=1.2, ls="--", label="distribution='hotelling'"),
+    ],
+    loc="outside lower center", ncols=3,
+)
+plt.show()
+```
+
+Both regions are centred on the same estimated mean and have the shape of the same
+estimated covariance matrix; only their size differs. As the area of the region is
+$\pi c \sqrt{\det \hat{\boldsymbol{\Sigma}}}$, the Hotelling region is larger than the
+normal region by the ratio of the quantiles. @fig-confidence-n shows the two regions for
+a small and a large sample of the same bivariate normal population: the Hotelling region
+is `{python} f"{area_ratio[0]:.2f}"` times larger in area with $n =$
+`{python} sizes_ce[0]`, and `{python} f"{area_ratio[1]:.3f}"` times larger with
+$n =$ `{python} sizes_ce[1]`.
+
 With $\hat{\boldsymbol{\Sigma}} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^\top$, the
 points are $\hat{\boldsymbol{\mu}} + \mathbf{V}(c\boldsymbol{\Lambda})^{1/2}\mathbf{e}$,
 with 361 values of $\theta$ (one per degree) for an ellipse and a 50 × 50 grid for an

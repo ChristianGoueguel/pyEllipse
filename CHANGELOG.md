@@ -32,4 +32,10 @@ This release ports the fixes and features of the [HotellingEllipse](https://gith
 
 ### Other changes
 
-- Added a test suite (`tests/`), including parity tests against HotellingEllipse 1.3.0 (`tests/r_parity_reference.R`).
+- Added a test suite (`tests/`), including parity tests against HotellingEllipse 1.3.0 (`tests/r_parity_reference.R`). The examples in the docstrings are run as tests too.
+
+- New documentation website, <https://christiangoueguel.com/pyEllipse>, built with Quarto and quartodoc and published by GitHub Actions: the theory behind each function (with derivations, the exact distribution of T-squared in each case, and simulation checks), worked examples, and the API reference. Figures, tables and numbers are computed with pyEllipse when the site is built, and every page shows the version and commit it was built from.
+
+- The docstrings of `hotelling_parameters()`, `hotelling_coordinates()` and `confidence_ellipse()` follow the numpydoc format, with the formulas and runnable examples.
+
+- The README examples use the wine data of scikit-learn, and their figures are publication ready (journal column sizes, embedded fonts, readable in grayscale). `scripts/readme_figures.py` regenerates the figures from the README's own code.
