@@ -50,15 +50,6 @@ print("Samples above it:", np.flatnonzero(t2 > res["cutoff_99pct"]).tolist())
 points of the matching ellipse, for plotting. The
 [PCA example](examples/pca-outliers.qmd) goes through a complete analysis.
 
-::: {.callout-important}
-## T-squared values changed in version 0.2.0
-
-Up to version 0.1.5, `hotelling_parameters` returned T-squared scaled by
-$(n-k)/(k(n-1))$, while the cutoffs were not, so comparing the two missed outliers.
-From version 0.2.0, `Tsquared` is on the same scale as the cutoffs. See the
-[changelog](https://github.com/ChristianGoueguel/pyEllipse/blob/main/CHANGELOG.md).
-:::
-
 ## Validation {#validation}
 
 The [test suite](https://github.com/ChristianGoueguel/pyEllipse/tree/main/tests) runs on
