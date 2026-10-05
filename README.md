@@ -5,6 +5,7 @@ A Python library for computing Hotelling's T² statistics and generating confide
 [![PyPI version](https://badge.fury.io/py/pyellipse.svg)](https://badge.fury.io/py/pyellipse)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pyEllipse.svg)](https://pypi.org/project/pyEllipse/)
 [![License](https://img.shields.io/github/license/ChristianGoueguel/pyEllipse.svg)](https://github.com/ChristianGoueguel/pyEllipse/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/ChristianGoueguel/pyEllipse/graph/badge.svg)](https://codecov.io/gh/ChristianGoueguel/pyEllipse)
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/pyEllipse)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/pyEllipse)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pyEllipse)
