@@ -427,10 +427,11 @@ c_normal = stats.chi2.ppf(0.95, 2)
 area_ratio = [2 * (size - 1) / (size - 2) * stats.f.ppf(0.95, 2, size - 2) / c_normal
               for size in sizes_ce]
 
-# Same axis limits for both panels
-extent = 1.05 * max(np.abs(np.concatenate([r[d][["x", "y"]].to_numpy().ravel()
-                                           for r in regions for d in r])).max(),
-                    np.abs(np.concatenate([s.to_numpy().ravel() for s in samples])).max())
+# Same data range for both panels
+extent = max(
+    max(np.abs(region[dist][["x", "y"]].to_numpy()).max() for region in regions for dist in region),
+    max(np.abs(sample.to_numpy()).max() for sample in samples),
+)
 
 fig, axes = plt.subplots(1, 2, figsize=(DOUBLE, 95 * MM))
 for ax, label, size, sample, region in zip(axes, "ab", sizes_ce, samples, regions):
@@ -439,8 +440,8 @@ for ax, label, size, sample, region in zip(axes, "ab", sizes_ce, samples, region
     ax.plot(region["normal"]["x"], region["normal"]["y"], color=BLUE, lw=1.2, zorder=3)
     ax.plot(region["hotelling"]["x"], region["hotelling"]["y"], color=ORANGE, lw=1.2,
             ls="--", zorder=3)
-    ax.set_xlim(-extent, extent)
-    ax.set_ylim(-extent, extent)
+    # Include the corners of the common range, and let the equal aspect widen x
+    ax.update_datalim([(-extent, -extent), (extent, extent)])
     ax.set_aspect("equal", adjustable="datalim")
     ax.text(0.03, 0.97, f"({label})  $n$ = {size}", transform=ax.transAxes,
             ha="left", va="top")

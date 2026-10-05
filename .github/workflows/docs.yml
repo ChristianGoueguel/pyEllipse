@@ -45,6 +45,14 @@ jobs:
         env:
           QUARTO_PYTHON: ${{ env.pythonLocation }}/bin/python
 
+      - name: Check that no code cell wrote to stderr
+        # Warnings and log messages of the code that computes the figures and tables
+        run: |
+          if grep -rl "cell-output-stderr" docs/_site --include='*.html'; then
+            echo "::error::Code cells of the pages listed above wrote to stderr."
+            exit 1
+          fi
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/_site
