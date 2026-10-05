@@ -98,11 +98,11 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "pyEllipse"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "--cov=pyEllipse --cov-report=html --cov-report=term-missing"
+addopts = "--doctest-modules --cov=pyEllipse --cov-report=html --cov-report=term-missing"
 
 [tool.coverage.run]
 source = ["pyEllipse"]

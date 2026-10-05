@@ -17,45 +17,73 @@ def hotelling_coordinates(
     pts: int = 200,
     method: Literal["f", "beta"] = "f"
 ) -> pd.DataFrame:
-    """
-    This module computes the boundary coordinate points needed to visualize Hotelling's
-    T-squared confidence regions. It supports both 2D confidence ellipses and 3D confidence
-    ellipsoids, calculating points based on the Hotelling's T-squared distribution for any
-    user-defined confidence interval.
+    r"""
+    Coordinates of Hotelling's T-squared ellipse or ellipsoid.
+
+    Computes points on the boundary of the region where Hotelling's T-squared statistic
+    of two components (ellipse) or three components (ellipsoid) equals its limit at a
+    given confidence level, for plotting confidence regions on score plots.
 
     Parameters
     ----------
-    *   `x` : Input matrix or data frame containing scores from PCA, PLS, ICA, or other
-        dimensionality reduction methods. Each column represents a component, and each row an observation.
-
-    *   `pcx` : Component to use for the x-axis (default=1).
-
-    *   `pcy` : Component to use for the y-axis (default=2).
-
-    *   `pcz` : Component to use for the z-axis for 3D ellipsoids. If None (default), a 2D ellipse is computed.
-
-    *   `conf_limit` : Confidence level for the ellipse (between 0 and 1). Default is 0.95
-        (95% confidence). Higher values result in larger ellipses.
-
-    *   `pts` : Number of points to generate for drawing the ellipse. Higher values
-        result in smoother ellipses but increase computation time.
-
-    *   `method` : How the T-squared limit is computed: `'f'` (default) or `'beta'`.
-        See `hotelling_parameters` for details.
+    x : numpy.ndarray or pandas.DataFrame
+        Scores from PCA, PLS, ICA, or similar methods, with one row per observation and
+        one column per component.
+    pcx : int, default 1
+        Component (1-based) on the x-axis.
+    pcy : int, default 2
+        Component (1-based) on the y-axis.
+    pcz : int, optional
+        Component (1-based) on the z-axis. When given, an ellipsoid is computed instead
+        of an ellipse.
+    conf_limit : float, default 0.95
+        Confidence level of the ellipse, strictly between 0 and 1.
+    pts : int, default 200
+        Number of points: `pts` points around the ellipse, or a `pts` by `pts` grid of
+        points on the ellipsoid.
+    method : str, default 'f'
+        Distribution of the T-squared limit, `'f'` or `'beta'`. See
+        `hotelling_parameters`.
 
     Returns
     -------
-    DataFrame containing coordinate points:
+    pandas.DataFrame
+        Coordinates of the points, in columns `'x'` and `'y'`, plus `'z'` for an
+        ellipsoid. The ellipsoid points are ordered as a `pts` by `pts` grid, with the
+        azimuthal angle varying fastest, so each column can be reshaped to `(pts, pts)`
+        for surface plots.
 
-        - For 2D ellipses: columns 'x' and 'y'
-        - For 3D ellipsoids: columns 'x', 'y', and 'z'
+    Raises
+    ------
+    TypeError
+        If `x` is not a NumPy array or a pandas DataFrame.
+    ValueError
+        If an argument is invalid, or if there are fewer than four (ellipse) or five
+        (ellipsoid) observations.
 
     Notes
     -----
-    When the selected components are correlated, the ellipse (ellipsoid) is rotated
-    accordingly, so that its boundary is exactly where the T-squared statistic equals
-    the limit. For uncorrelated scores, such as the PCA or PLS scores of the samples
-    the model was fitted on, its axes are aligned with the components.
+    With $\bar{\mathbf{x}}$ and $\mathbf{S}$ the sample mean and covariance matrix of the
+    selected components and $c$ the T-squared limit, the points are
+    $\bar{\mathbf{x}} + \sqrt{c}\, \mathbf{S}^{1/2} \mathbf{u}$, where $\mathbf{u}$ runs
+    over the unit circle (sphere) and $\mathbf{S}^{1/2}$ is the symmetric square root of
+    $\mathbf{S}$. Each point therefore has a T-squared value of exactly $c$. When the
+    components are correlated, the ellipse (ellipsoid) is rotated accordingly; for
+    uncorrelated scores, such as the PCA or PLS scores of the samples a model was fitted
+    on, its axes are aligned with the components. Derivations are given on the Theory
+    page of the documentation, <https://christiangoueguel.com/pyEllipse/theory.html>.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyEllipse import hotelling_coordinates
+    >>> scores = np.random.default_rng(0).standard_normal((50, 3)) * [3.0, 2.0, 1.0]
+    >>> ellipse = hotelling_coordinates(scores, pcx=1, pcy=2, conf_limit=0.99)
+    >>> ellipse.shape
+    (200, 2)
+    >>> ellipsoid = hotelling_coordinates(scores, pcx=1, pcy=2, pcz=3, pts=50)
+    >>> ellipsoid.shape
+    (2500, 3)
     """
     if x is None:
         raise ValueError("Missing input data.")

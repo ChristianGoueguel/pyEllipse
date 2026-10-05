@@ -1,0 +1,13 @@
+# Tools to build the documentation, in addition to pyEllipse itself:
+#   pip install . -r docs/requirements.txt
+#   QUARTO_PYTHON=$(which python) quarto render docs
+quartodoc==0.11.1
+griffe>=1,<2  # quartodoc 0.11 does not support griffe 2
+jupyter-client
+ipykernel
+nbclient
+nbformat
+pyyaml
+jinja2  # pandas Styler, used for the tables
+matplotlib
+scikit-learn

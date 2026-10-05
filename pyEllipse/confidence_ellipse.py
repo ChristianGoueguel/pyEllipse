@@ -19,44 +19,91 @@ def confidence_ellipse(
     robust: bool = False,
     distribution: Literal["normal", "hotelling"] = "normal"
 ) -> pd.DataFrame:
-    """
-    This module generates coordinate points for visualizing confidence regions in multivariate data. 
-    It supports both 2D confidence ellipses and 3D confidence ellipsoids at user-specified 
-    confidence levels, with options for normal distribution assumptions or Hotelling's T-squared 
-    distribution for small sample sizes.
-    
+    r"""
+    Coordinates of confidence ellipses or ellipsoids of raw data, optionally by group.
+
+    Computes points on the boundary of the confidence region of two (ellipse) or three
+    (ellipsoid) variables at a given confidence level, from the classical or a robust
+    estimate of their mean and covariance matrix, and a normal or Hotelling's T-squared
+    quantile.
+
     Parameters
     ----------
-    *   `data` : Input data frame containing the variables.
-    
-    *   `x` : Column name for the x-axis variable.
-    
-    *   `y` : Column name for the y-axis variable.
-    
-    *   `z` : Column name for the z-axis variable (None by default).
-        If provided, computes a 3D ellipsoid instead of a 2D ellipse.
-    
-    *   `group_by` : Column name for the grouping variable (None by default).
-        This grouping variable should be categorical.
-    
-    *   `conf_level` : Confidence level for the ellipse/ellipsoid (between 0 and 1).
-    
-    *   `robust` : When `True`, uses robust estimation methods for location and scale.
-        Uses sklearn's `EllipticEnvelope` for robust covariance estimation.
-    
-    *   `distribution` : Distribution used to calculate the quantile for the ellipse.
-        Options are:
+    data : pandas.DataFrame
+        Data containing the variables.
+    x : str
+        Column of the x-axis variable.
+    y : str
+        Column of the y-axis variable.
+    z : str, optional
+        Column of the z-axis variable. When given, an ellipsoid is computed instead of an
+        ellipse.
+    group_by : str, optional
+        Categorical column defining groups. When given, one ellipse (ellipsoid) is
+        computed for each group.
+    conf_level : float, default 0.95
+        Confidence level, strictly between 0 and 1.
+    robust : bool, default False
+        When `True`, the mean and covariance matrix are estimated robustly with
+        scikit-learn's `EllipticEnvelope` (Minimum Covariance Determinant). If the robust
+        fit fails, the classical estimates are used with a warning.
+    distribution : str, default 'normal'
+        Distribution of the quantile scaling the region: the chi-square distribution
+        (`'normal'`, for large samples) or Hotelling's T-squared distribution
+        (`'hotelling'`, for small samples). See Notes.
 
-        - `'normal'`: Uses chi-square distribution (appropriate for large samples)
-        - `'hotelling'`: Uses Hotelling's T² distribution (better for small samples)
-    
     Returns
     -------
-    DataFrame containing the coordinate points:
+    pandas.DataFrame
+        Coordinates of the points, in columns `'x'` and `'y'`, plus `'z'` for an
+        ellipsoid: 361 points around each ellipse, or a 50 by 50 grid of points on each
+        ellipsoid. With `group_by`, the group of each point is in a column named after
+        `group_by`.
 
-        - For 2D: columns 'x' and 'y'
-        - For 3D: columns 'x', 'y', and 'z'
-        If group_by is specified, includes the grouping column.
+    Raises
+    ------
+    TypeError
+        If `data` is not a DataFrame or `conf_level` is not a number.
+    ValueError
+        If a column is missing, an argument is invalid, a group has fewer than three
+        observations, or the covariance matrix contains missing values.
+
+    Notes
+    -----
+    With $\hat{\boldsymbol{\mu}}$ and $\hat{\boldsymbol{\Sigma}} = \mathbf{V}
+    \boldsymbol{\Lambda} \mathbf{V}^\top$ the estimated mean and covariance matrix of the
+    $p$ variables ($p = 2$ or 3) and $c$ the quantile, the points are
+    $\hat{\boldsymbol{\mu}} + \mathbf{V} (c\boldsymbol{\Lambda})^{1/2} \mathbf{u}$, where
+    $\mathbf{u}$ runs over the unit circle (sphere). The quantile is
+    $c = \chi^2_{1-\alpha}(p)$ with `distribution='normal'`, and
+    $c = \frac{p(n-1)}{n-p} F_{1-\alpha}(p, n-p)$ with `distribution='hotelling'`, where
+    $n$ is the number of observations (of each group). Derivations are given on the
+    Theory page of the documentation,
+    <https://christiangoueguel.com/pyEllipse/theory.html>.
+
+    The robust estimates come from `EllipticEnvelope(support_fraction=0.9,
+    random_state=42)`, i.e. the reweighted Minimum Covariance Determinant estimator
+    computed with the FAST-MCD algorithm (Rousseeuw and Van Driessen, 1999) on 90% of the
+    observations.
+
+    References
+    ----------
+    Rousseeuw, P. J. and Van Driessen, K. (1999). A fast algorithm for the minimum
+    covariance determinant estimator. *Technometrics*, 41(3), 212-223.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from pyEllipse import confidence_ellipse
+    >>> rng = np.random.default_rng(0)
+    >>> df = pd.DataFrame(rng.standard_normal((60, 2)), columns=['u', 'v'])
+    >>> df['group'] = np.repeat(['A', 'B', 'C'], 20)
+    >>> ellipses = confidence_ellipse(df, x='u', y='v', group_by='group', distribution='hotelling')
+    >>> ellipses.shape
+    (1083, 3)
+    >>> ellipses['group'].unique().tolist()
+    ['A', 'B', 'C']
     """
     if not isinstance(data, pd.DataFrame):
         raise TypeError("Input 'data' must be a pandas DataFrame.")

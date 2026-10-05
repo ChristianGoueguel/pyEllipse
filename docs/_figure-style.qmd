@@ -1,0 +1,51 @@
+```{python}
+#| code-summary: "Figure style"
+import matplotlib.pyplot as plt
+from cycler import cycler
+
+# Figure widths of most journals, in inches: single, 1.5 and double column
+MM = 1 / 25.4
+SINGLE, ONE_HALF, DOUBLE = 89 * MM, 140 * MM, 183 * MM
+
+# Colour-blind-safe colours, used in this order; each figure also varies line style
+# or marker shape, so it can be printed in grayscale
+BLUE, ORANGE, AQUA, GREY = "#2a78d6", "#eb6834", "#1baf7a", "#808080"
+
+plt.rcParams.update({
+    # Text and mathematics in the same sans-serif font, at the printed size
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "Liberation Sans", "DejaVu Sans"],
+    "font.size": 9,
+    "axes.labelsize": 9,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+    "legend.fontsize": 8,
+    "mathtext.fontset": "custom",
+    "mathtext.rm": "sans",
+    "mathtext.it": "sans:italic",
+    "mathtext.bf": "sans:bold",
+    "mathtext.sf": "sans",
+    "mathtext.cal": "sans:italic",
+    # Thin black axes, outward ticks, no grid
+    "axes.edgecolor": "black",
+    "axes.linewidth": 0.6,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.prop_cycle": cycler(color=[BLUE, ORANGE, AQUA]),
+    "xtick.major.width": 0.6,
+    "ytick.major.width": 0.6,
+    "xtick.major.size": 3,
+    "ytick.major.size": 3,
+    "xtick.direction": "out",
+    "ytick.direction": "out",
+    "lines.linewidth": 1.2,
+    "legend.frameon": False,
+    # Saved figures keep the exact size set with figsize
+    "figure.constrained_layout.use": True,
+    # Vector output with embedded TrueType fonts; 600 dpi for raster formats
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+    "svg.fonttype": "none",
+    "savefig.dpi": 600,
+})
+```
