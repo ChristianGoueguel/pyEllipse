@@ -50,3 +50,11 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+      # Upload from a single job so that Codecov reports one coverage figure
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
