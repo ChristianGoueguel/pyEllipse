@@ -5,6 +5,7 @@ The points are checked against the mean, covariance matrix and chi-square or F q
 computed independently of the package: a point on the boundary of the region has a
 squared Mahalanobis distance from the mean equal to the quantile.
 """
+import importlib
 import re
 
 import numpy as np
@@ -19,7 +20,9 @@ from pyEllipse import confidence_ellipse, hotelling_parameters
 
 from ._helpers import f_limit, mahalanobis_sq
 
-PANDAS_BEFORE_3 = Version(pd.__version__) < Version("3")
+# The module, which the function of the same name hides in the package namespace
+confidence_ellipse_module = importlib.import_module("pyEllipse.confidence_ellipse")
+
 SKLEARN_BEFORE_1_8 = Version(sklearn.__version__) < Version("1.8")
 
 MIXING = np.array([[2, 0, 0], [1.2, 1, 0], [-0.5, 0.7, 0.4]])
@@ -66,6 +69,18 @@ def variables(z):
     return ["u", "v"] if z is None else ["u", "v", "w"]
 
 
+def reweighted_mcd(x):
+    """
+    Reweighted MCD estimates of x, consistent at the normal distribution: mean and covariance
+    matrix of the observations within the 97.5% chi-square quantile of the raw MCD distances,
+    the latter multiplied by the factor of Croux and Haesbroeck (1999).
+    """
+    p = x.shape[1]
+    kept = x[MinCovDet(support_fraction=0.9, random_state=42).fit(x).support_]
+    factor = 0.975 / stats.chi2.cdf(stats.chi2.ppf(0.975, p), p + 2)
+    return kept.mean(axis=0), np.cov(kept, rowvar=False, bias=True) * factor
+
+
 class TestOutput:
     def test_ellipse_structure(self, data):
         res = confidence_ellipse(data, x="u", y="v")
@@ -90,7 +105,6 @@ class TestOutput:
             confidence_ellipse(data, x="u", y="v", conf_level=0.9),
         )
 
-    @pytest.mark.xfail(strict=True, reason="Bug: isinstance(conf_level, (int, float)) rejects NumPy scalars such as np.float32")
     def test_numpy_float32_conf_level(self, data):
         level = np.float32(0.9)
         pd.testing.assert_frame_equal(
@@ -165,6 +179,24 @@ class TestEllipsoid:
         np.testing.assert_allclose(np.abs(proj).max(axis=0), np.sqrt(c * values), rtol=2e-3)
 
 
+class TestSingularCovariance:
+    def test_collinear_variables_give_a_line_segment(self, data):
+        # Rounding makes the zero eigenvalue of the covariance matrix slightly negative
+        data["v"] = 2 * data["u"]
+        res = confidence_ellipse(data, x="u", y="v")
+        assert np.isfinite(res.to_numpy()).all()
+        np.testing.assert_allclose(res["y"], 2 * res["x"])
+        # The covariance matrix is var(u) [[1, 2], [2, 4]], with eigenvalues 0 and 5 var(u)
+        r = np.hypot(*(res.to_numpy() - data[["u", "v"]].mean().to_numpy()).T)
+        assert r.max() == pytest.approx(np.sqrt(stats.chi2.ppf(0.95, 2) * 5 * data["u"].var()))
+
+    def test_collinear_variables_give_a_flat_ellipsoid(self, data):
+        data["w"] = data["u"] - data["v"]
+        res = confidence_ellipse(data, x="u", y="v", z="w")
+        assert np.isfinite(res.to_numpy()).all()
+        np.testing.assert_allclose(res["z"], res["x"] - res["y"], atol=1e-12)
+
+
 class TestGroups:
     @pytest.mark.parametrize("distribution", ["normal", "hotelling"])
     @pytest.mark.parametrize("z", [None, "w"])
@@ -182,18 +214,14 @@ class TestGroups:
             # Mean, covariance matrix and number of observations of the group only
             np.testing.assert_allclose(mahalanobis_sq(x, pts), quantile(distribution, 0.9, n, len(variables(z))))
 
-    @pytest.mark.parametrize("z", [None, "w"])
-    def test_group_with_too_few_observations(self, grouped, z):
-        small = pd.concat([grouped[grouped["group"] == "B"], grouped[grouped["group"] == "A"].head(2)])
-        with pytest.raises(ValueError, match="At least 3 observations are required."):
+    @pytest.mark.parametrize("z, n_min", [(None, 3), ("w", 4)])
+    def test_group_with_too_few_observations(self, grouped, z, n_min):
+        small = pd.concat([grouped[grouped["group"] == "B"], grouped[grouped["group"] == "A"].head(n_min - 1)])
+        with pytest.raises(ValueError, match=f"At least {n_min} observations are required."):
             confidence_ellipse(small, x="u", y="v", z=z, group_by="group")
 
-    @pytest.mark.xfail(
-        PANDAS_BEFORE_3,
-        strict=True,
-        reason="Bug: with pandas < 3, data.groupby(group_by) also yields the unused categories "
-        "of a categorical column, as empty groups (observed=True is not passed)",
-    )
+    # pandas < 3 warns that the default of observed will change
+    @pytest.mark.filterwarnings("error::FutureWarning")
     def test_unused_categories_are_ignored(self, grouped):
         # e.g. after removing the observations of a group from data
         grouped["group"] = pd.Categorical(grouped["group"], categories=["A", "B", "C"])
@@ -207,11 +235,20 @@ class TestRobust:
     @pytest.mark.parametrize("z", [None, "w"])
     def test_estimates_are_the_reweighted_mcd(self, contaminated, z, distribution):
         x = contaminated[variables(z)].to_numpy()
-        mcd = MinCovDet(support_fraction=0.9, random_state=42).fit(x)
+        location, covariance = reweighted_mcd(x)
         res = confidence_ellipse(contaminated, x="u", y="v", z=z, robust=True, distribution=distribution)
-        d = res.to_numpy() - mcd.location_
-        md = np.einsum("ij,jk,ik->i", d, np.linalg.inv(mcd.covariance_), d)
+        d = res.to_numpy() - location
+        md = np.einsum("ij,jk,ik->i", d, np.linalg.inv(covariance), d)
         np.testing.assert_allclose(md, quantile(distribution, 0.95, 200, len(variables(z))))
+
+    @pytest.mark.skipif(SKLEARN_BEFORE_1_8, reason="scikit-learn < 1.8 does not apply the consistency factor")
+    @pytest.mark.parametrize("z", [None, "w"])
+    def test_consistency_factor_is_the_one_of_scikit_learn(self, contaminated, z):
+        x = contaminated[variables(z)].to_numpy()
+        mcd = MinCovDet(support_fraction=0.9, random_state=42).fit(x)
+        location, covariance = reweighted_mcd(x)
+        np.testing.assert_allclose(location, mcd.location_)
+        np.testing.assert_allclose(covariance, mcd.covariance_)
 
     @pytest.mark.parametrize("z", [None, "w"])
     def test_region_resists_outliers(self, contaminated, z):
@@ -227,17 +264,31 @@ class TestRobust:
         assert robust.min() > 0.5 and robust.max() < 1.5
         assert classical.max() > 2
 
-    @pytest.mark.xfail(
-        SKLEARN_BEFORE_1_8,
-        strict=True,
-        reason="Bug: scikit-learn < 1.8 does not make the reweighted MCD covariance matrix "
-        "consistent at the normal distribution: variances are about 10% too small, and the "
-        "nominal 95% region covers about 93% of the distribution",
+    def test_factor_is_applied_with_scikit_learn_before_1_8(self, contaminated, monkeypatch):
+        # Whichever version is installed: the covariance matrix of scikit-learn is multiplied
+        # by the factor
+        monkeypatch.setattr(confidence_ellipse_module, "_sklearn_version", lambda: (1, 7))
+        x = contaminated[["u", "v"]].to_numpy()
+        mcd = MinCovDet(support_fraction=0.9, random_state=42).fit(x)
+        factor = 0.975 / stats.chi2.cdf(stats.chi2.ppf(0.975, 2), 4)
+        res = confidence_ellipse(contaminated, x="u", y="v", robust=True)
+        d = res.to_numpy() - mcd.location_
+        md = np.einsum("ij,jk,ik->i", d, np.linalg.inv(mcd.covariance_ * factor), d)
+        np.testing.assert_allclose(md, stats.chi2.ppf(0.95, 2))
+
+    @pytest.mark.parametrize(
+        "version, expected", [("1.7.2", (1, 7)), ("1.8.0", (1, 8)), ("1.10.0rc1", (1, 10)), ("2.0.dev0", (2, 0))]
     )
+    def test_sklearn_version(self, monkeypatch, version, expected):
+        monkeypatch.setattr(sklearn, "__version__", version)
+        assert confidence_ellipse_module._sklearn_version() == expected
+
     @pytest.mark.parametrize("z", [None, "w"])
     def test_region_has_the_nominal_level_on_normal_data(self, z):
         # Without outliers, the robust and classical estimates agree on average: the points
-        # lie on the region given by the sample mean and covariance matrix
+        # lie on the region given by the sample mean and covariance matrix. Without the
+        # consistency factor (scikit-learn < 1.8), the variances are about 10% too small, and
+        # the 95% region contains about 93% of the distribution.
         rng = np.random.default_rng(1)
         c = stats.chi2.ppf(0.95, len(variables(z)))
         ratios = []
@@ -281,7 +332,9 @@ class TestValidation:
             ({"conf_level": 1}, ValueError, "'conf_level' must be between 0 and 1."),
             ({"conf_level": -0.05}, ValueError, "'conf_level' must be between 0 and 1."),
             ({"conf_level": 95}, ValueError, "'conf_level' must be between 0 and 1."),
+            ({"conf_level": True}, TypeError, "'conf_level' must be numeric."),
             ({"conf_level": np.inf}, ValueError, "'conf_level' must be between 0 and 1."),
+            ({"conf_level": np.nan}, ValueError, "'conf_level' must be between 0 and 1."),
             ({"distribution": "chisq"}, ValueError, "'distribution' must be either 'normal' or 'hotelling'."),
             ({"distribution": "Hotelling"}, ValueError, "'distribution' must be either 'normal' or 'hotelling'."),
         ],
@@ -290,11 +343,6 @@ class TestValidation:
         with pytest.raises(error, match=re.escape(message)):
             confidence_ellipse(data, **{"x": "u", "y": "v", **kwargs})
 
-    @pytest.mark.xfail(strict=True, reason="Bug: NaN passes the range check, and every coordinate is NaN")
-    def test_nan_conf_level(self, data):
-        with pytest.raises(ValueError, match="conf_level"):
-            confidence_ellipse(data, x="u", y="v", conf_level=np.nan)
-
     @pytest.mark.parametrize(
         "bad", [np.ones((40, 3)), {"u": [1.0, 2.0, 3.0], "v": [3.0, 1.0, 2.0]}, None], ids=["array", "dict", "None"]
     )
@@ -302,20 +350,15 @@ class TestValidation:
         with pytest.raises(TypeError, match="Input 'data' must be a pandas DataFrame."):
             confidence_ellipse(bad, x="u", y="v")
 
-    @pytest.mark.parametrize("z", [None, "w"])
-    def test_too_few_observations(self, data, z):
-        with pytest.raises(ValueError, match="At least 3 observations are required."):
-            confidence_ellipse(data.head(2), x="u", y="v", z=z)
-
-    @pytest.mark.xfail(
-        strict=True,
-        reason="Bug: 3 observations of 3 variables pass the check, although their covariance "
-        "matrix is singular (flat ellipsoid) and the Hotelling quantile divides by n - 3 = 0",
-    )
     @pytest.mark.parametrize("distribution", ["normal", "hotelling"])
-    def test_too_few_observations_for_an_ellipsoid(self, data, distribution):
-        with pytest.raises(ValueError, match="observations"):
-            confidence_ellipse(data.head(3), x="u", y="v", z="w", distribution=distribution)
+    @pytest.mark.parametrize("z, n_min", [(None, 3), ("w", 4)])
+    def test_too_few_observations(self, data, z, n_min, distribution):
+        # p + 1 observations of p variables: fewer give a singular covariance matrix, and
+        # n - p = 0 in the Hotelling quantile
+        with pytest.raises(ValueError, match=f"At least {n_min} observations are required."):
+            confidence_ellipse(data.head(n_min - 1), x="u", y="v", z=z, distribution=distribution)
+        res = confidence_ellipse(data.head(n_min), x="u", y="v", z=z, distribution=distribution)
+        assert np.isfinite(res.to_numpy()).all()
 
     @pytest.mark.parametrize("z", [None, "w"])
     def test_missing_values(self, data, z):

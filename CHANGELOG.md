@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Bug fixes
+
+- `confidence_ellipse()` with `robust=True` now gives regions with the nominal confidence level for normal data with scikit-learn < 1.8. These versions do not make the reweighted Minimum Covariance Determinant covariance matrix consistent at the normal distribution, so its variances were about 10% too small, and a 95% robust ellipse contained only about 93% of the distribution. pyEllipse now applies the consistency factor of scikit-learn ≥ 1.8 (Croux and Haesbroeck, 1999) with older versions, so robust results no longer depend on the version of scikit-learn.
+
+- `confidence_ellipse()` now requires at least four observations (of each group) for an ellipsoid. With three, `distribution='hotelling'` failed with a `ZeroDivisionError`, and `distribution='normal'` returned a flat ellipsoid.
+
+- `confidence_ellipse()` no longer returns NaN coordinates for collinear variables, whose covariance matrix is singular: the region is then flat (a line segment for two variables).
+
+- With a categorical `group_by` column, `confidence_ellipse()` no longer fails with "At least 3 observations are required" when some categories have no observations, e.g. after filtering the data, and no longer issues a pandas `FutureWarning`.
+
+- `conf_level=nan` in `confidence_ellipse()` now raises an error instead of returning NaN coordinates, and NumPy floating-point scalars such as `np.float32` are now accepted.
+
 ## pyEllipse 0.2.0
 
 This release ports the fixes and features of the [HotellingEllipse](https://github.com/ChristianGoueguel/HotellingEllipse) 1.3.0 R package.

@@ -395,12 +395,20 @@ in two ways.
   Determinant estimates computed by scikit-learn's `EllipticEnvelope` with
   `support_fraction=0.9` and `random_state=42`, i.e. the FAST-MCD algorithm
   [@rousseeuw1999] on 90% of the observations, so up to about 10% of outlying
-  observations do not affect them.
+  observations do not affect them. The reweighted covariance matrix is multiplied by
+  the factor that makes it consistent at the normal distribution [@croux1999], as by
+  scikit-learn ≥ 1.8; pyEllipse applies this factor itself with older versions, which
+  omit it. Without it, the variances are about 10% too small for $p = 2$, and a 95%
+  region contains only about 93% of a normal distribution.
 - **Quantile.** With `distribution='normal'`, $c = \chi^2_{1-\alpha}(p)$, the
   large-sample limit, which treats the estimated mean and covariance as exact. With
   `distribution='hotelling'`, $c = \frac{p(n-1)}{n-p} F_{1-\alpha}(p, n-p)$ as in
   @eq-limit-f, where $n$ is the number of observations of the group; it is larger than
   the chi-square quantile, and the difference matters for small groups.
+
+At least $p + 1$ observations (of each group) are required, so that the covariance matrix
+can be nonsingular and $n - p > 0$. A singular covariance matrix, e.g. of collinear
+variables, gives a flat region: a line segment, or a flat ellipsoid.
 
 ```{python}
 #| label: fig-confidence-n

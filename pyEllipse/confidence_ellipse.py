@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from typing import Optional, Literal
+import numbers
+import re
 import warnings
 
 
@@ -66,7 +68,8 @@ def confidence_ellipse(
         If `data` is not a DataFrame or `conf_level` is not a number.
     ValueError
         If a column is missing, an argument is invalid, a group has fewer than three
-        observations, or the covariance matrix contains missing values.
+        observations (four for an ellipsoid), or the covariance matrix contains missing
+        values.
 
     Notes
     -----
@@ -81,13 +84,24 @@ def confidence_ellipse(
     Theory page of the documentation,
     <https://christiangoueguel.com/pyEllipse/theory.html>.
 
+    At least $p + 1$ observations are required, so that the covariance matrix can be
+    nonsingular and $n - p > 0$. A singular covariance matrix, e.g. of collinear variables,
+    gives a flat region: a line segment, or a flat ellipsoid.
+
     The robust estimates come from `EllipticEnvelope(support_fraction=0.9,
     random_state=42)`, i.e. the reweighted Minimum Covariance Determinant estimator
     computed with the FAST-MCD algorithm (Rousseeuw and Van Driessen, 1999) on 90% of the
-    observations.
+    observations. The reweighted covariance matrix is made consistent at the normal
+    distribution (Croux and Haesbroeck, 1999), as by scikit-learn >= 1.8, so that the robust
+    and classical regions agree for normal data without outliers. Older versions of
+    scikit-learn do not apply this factor, so pyEllipse applies it.
 
     References
     ----------
+    Croux, C. and Haesbroeck, G. (1999). Influence function and efficiency of the minimum
+    covariance determinant scatter matrix estimator. *Journal of Multivariate Analysis*,
+    71(2), 161-190.
+
     Rousseeuw, P. J. and Van Driessen, K. (1999). A fast algorithm for the minimum
     covariance determinant estimator. *Technometrics*, 41(3), 212-223.
 
@@ -114,11 +128,13 @@ def confidence_ellipse(
     if y not in data.columns:
         raise ValueError(f"Column '{y}' not found in data.")
     
-    if not isinstance(conf_level, (int, float)):
+    if not isinstance(conf_level, numbers.Real) or isinstance(conf_level, (bool, np.bool_)):
         raise TypeError("'conf_level' must be numeric.")
     
-    if conf_level <= 0 or conf_level >= 1:
+    # Also rejects NaN
+    if not 0 < conf_level < 1:
         raise ValueError("'conf_level' must be between 0 and 1.")
+    conf_level = float(conf_level)
     
     if distribution not in ["normal", "hotelling"]:
         raise ValueError("'distribution' must be either 'normal' or 'hotelling'.")
@@ -133,7 +149,7 @@ def confidence_ellipse(
             if group_by not in data.columns:
                 raise ValueError(f"Column '{group_by}' not found in data.")
             results = []
-            for group_name, group_data in data.groupby(group_by):
+            for group_name, group_data in data.groupby(group_by, observed=True):
                 selected_data = group_data[[x, y]].values
                 ellipse_coord = _transform_2d(selected_data, conf_level, robust, distribution)
                 group_df = pd.DataFrame(ellipse_coord, columns=['x', 'y'])
@@ -154,7 +170,7 @@ def confidence_ellipse(
             if group_by not in data.columns:
                 raise ValueError(f"Column '{group_by}' not found in data.")    
             results = []
-            for group_name, group_data in data.groupby(group_by):
+            for group_name, group_data in data.groupby(group_by, observed=True):
                 selected_data = group_data[[x, y, z]].values
                 ellipsoid_coord = _transform_3d(selected_data, conf_level, robust, distribution)
                 group_df = pd.DataFrame(ellipsoid_coord, columns=['x', 'y', 'z'])
@@ -194,25 +210,7 @@ def _transform_2d(
     if n < 3:
         raise ValueError("At least 3 observations are required.")
     
-    if not robust:
-        mean_vec = np.mean(x, axis=0)
-        cov_matrix = np.cov(x, rowvar=False)
-    else:
-        from sklearn.covariance import EllipticEnvelope
-        try:
-            robust_cov = EllipticEnvelope(support_fraction=0.9, random_state=42)
-            robust_cov.fit(x)
-            mean_vec = robust_cov.location_
-            cov_matrix = robust_cov.covariance_
-        except Exception as e:
-            warnings.warn(f"Robust estimation failed: {e}. Using classical estimates.")
-            mean_vec = np.mean(x, axis=0)
-            cov_matrix = np.cov(x, rowvar=False)
-    
-    if np.any(np.isnan(cov_matrix)):
-        raise ValueError("Covariance matrix contains NA values.")
-    
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+    mean_vec, eigenvalues, eigenvectors = _estimate(x, robust)
     theta = np.linspace(0, 2 * np.pi, 361)
     
     if distribution == "normal":
@@ -254,28 +252,11 @@ def _transform_3d(
     """
     n = x.shape[0]
     
-    if n < 3:
-        raise ValueError("At least 3 observations are required.")
+    # With fewer than p + 1 observations, the covariance matrix is singular and n - p <= 0
+    if n < 4:
+        raise ValueError("At least 4 observations are required.")
     
-    if not robust:
-        mean_vec = np.mean(x, axis=0)
-        cov_matrix = np.cov(x, rowvar=False)
-    else:
-        from sklearn.covariance import EllipticEnvelope
-        try:
-            robust_cov = EllipticEnvelope(support_fraction=0.9, random_state=42)
-            robust_cov.fit(x)
-            mean_vec = robust_cov.location_
-            cov_matrix = robust_cov.covariance_
-        except Exception as e:
-            warnings.warn(f"Robust estimation failed: {e}. Using classical estimates.")
-            mean_vec = np.mean(x, axis=0)
-            cov_matrix = np.cov(x, rowvar=False)
-    
-    if np.any(np.isnan(cov_matrix)):
-        raise ValueError("Covariance matrix contains NA values.")
-    
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+    mean_vec, eigenvalues, eigenvectors = _estimate(x, robust)
     theta = np.linspace(0, 2 * np.pi, 50)
     phi = np.linspace(0, np.pi, 50)
     theta_grid, phi_grid = np.meshgrid(theta, phi)
@@ -293,3 +274,46 @@ def _transform_3d(
     R = np.column_stack([X, Y, Z]) @ eigenvectors.T
     result = R + mean_vec
     return result
+
+
+def _estimate(x: np.ndarray, robust: bool):
+    """
+    Mean vector of the rows of x, and eigenvalues (in increasing order) and eigenvectors of
+    their covariance matrix, both classical or robust.
+    """
+    if not robust:
+        mean_vec = np.mean(x, axis=0)
+        cov_matrix = np.cov(x, rowvar=False)
+    else:
+        from sklearn.covariance import EllipticEnvelope
+        try:
+            robust_cov = EllipticEnvelope(support_fraction=0.9, random_state=42)
+            robust_cov.fit(x)
+            mean_vec = robust_cov.location_
+            cov_matrix = robust_cov.covariance_
+            if _sklearn_version() < (1, 8):
+                # The reweighted covariance matrix is computed from the observations within
+                # the 97.5% chi-square quantile of the raw MCD distances. scikit-learn < 1.8
+                # does not rescale it, so it is too small at the normal distribution (by
+                # about 10% for p = 2): apply the factor of scikit-learn >= 1.8 (Croux and
+                # Haesbroeck, 1999).
+                p = x.shape[1]
+                cov_matrix = cov_matrix * 0.975 / stats.chi2.cdf(stats.chi2.ppf(0.975, p), p + 2)
+        except Exception as e:
+            warnings.warn(f"Robust estimation failed: {e}. Using classical estimates.")
+            mean_vec = np.mean(x, axis=0)
+            cov_matrix = np.cov(x, rowvar=False)
+    
+    if np.any(np.isnan(cov_matrix)):
+        raise ValueError("Covariance matrix contains NA values.")
+    
+    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+    # The covariance matrix of collinear variables is singular, and rounding can make its
+    # smallest eigenvalues slightly negative: clip them, so that the region is flat
+    return mean_vec, np.clip(eigenvalues, 0, None), eigenvectors
+
+
+def _sklearn_version() -> tuple:
+    """(major, minor) version of scikit-learn."""
+    import sklearn
+    return tuple(int(v) for v in re.match(r"(\d+)\.(\d+)", sklearn.__version__).groups())
