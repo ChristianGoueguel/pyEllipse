@@ -3,6 +3,8 @@ project:
   output-dir: _site
   # Writes _variables.yml (version, commit) and generates the API reference
   pre-render: _scripts/pre_render.py
+  # Redirects the URLs of the former pdoc documentation
+  post-render: _scripts/post_render.py
 
 website:
   title: "pyEllipse"

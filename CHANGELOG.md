@@ -38,4 +38,6 @@ This release ports the fixes and features of the [HotellingEllipse](https://gith
 
 - The docstrings of `hotelling_parameters()`, `hotelling_coordinates()` and `confidence_ellipse()` follow the numpydoc format, with the formulas and runnable examples.
 
-- The README examples use the wine data of scikit-learn, and their figures are publication ready (journal column sizes, embedded fonts, readable in grayscale). `scripts/readme_figures.py` regenerates the figures from the README's own code.
+- The README examples use the wine data of scikit-learn, and their figures are publication ready (journal column sizes, embedded fonts, readable in grayscale). `scripts/readme_figures.py` regenerates the figures from the README's own code, and `scripts/examples_notebook.py` regenerates `examples.ipynb` from the README examples.
+
+- The pages of the former documentation (`pyEllipse.html` and `pyEllipse/<function>.html`) redirect to the new site.
